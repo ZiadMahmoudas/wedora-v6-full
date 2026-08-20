@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Invitation — WEDORA</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="invitation-body">
+  <div class="invitation-gate" id="gate">
+    <div class="gate-art" id="gateArt" aria-hidden="true"></div>
+    <div class="gate-card">
+      <small class="gate-eyebrow">YOU ARE INVITED</small>
+      <span class="gate-mark">✦</span>
+      <h1 data-names></h1>
+      <p data-i18n="invite_open"></p>
+      <button class="gate-open" id="gateOpen" aria-label="Open invitation">✦</button>
+      <small class="gate-help">
+        <span data-lang-only="ar">اضغط مرة واحدة — الموسيقى والحركة تبدأ بهدوء</span>
+        <span data-lang-only="en">Tap once — music and gentle motion begin</span>
+      </small>
+    </div>
+  </div>
+
+  <button class="inv-music" id="musicBtn" aria-label="Music">♫</button>
+  <button class="auto-scroll-pill" id="autoScrollState" hidden type="button">
+    <span class="auto-scroll-dot"></span><span id="autoScrollText">AUTO ↓</span>
+  </button>
+  <audio id="inviteAudio" loop preload="metadata"></audio>
+
+  <main class="invite-main" id="inviteMain">
+    <section class="invite-cover" id="inviteHero">
+      <div class="invite-cover-art" id="inviteHeroArt" aria-hidden="true"></div>
+      <div class="invite-cover-meta">
+        <small>OUR CELEBRATION</small>
+        <h1 data-names></h1>
+        <small data-date></small>
+      </div>
+    </section>
+
+    <section class="invite-section invite-intro-section">
+      <div class="invite-section-inner">
+        <small style="color:var(--accent)" data-date></small>
+        <h2 data-names></h2>
+        <p data-message></p>
+        <div class="inv-countdown" id="countdown">
+          <div><b id="cdDays">0</b><span data-i18n="invite_days"></span></div>
+          <div><b id="cdHours">0</b><span data-i18n="invite_hours"></span></div>
+          <div><b id="cdMinutes">0</b><span data-i18n="invite_minutes"></span></div>
+          <div><b id="cdSeconds">0</b><span data-i18n="invite_seconds"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="invite-section alt invite-location-section">
+      <div class="invite-section-inner">
+        <small data-i18n="invite_location"></small>
+        <h2 data-venue></h2>
+        <p data-city></p>
+        <a class="btn btn-primary" id="mapLink" target="_blank" rel="noopener" data-i18n="invite_open_map"></a>
+      </div>
+    </section>
+
+    <section class="invite-section invite-custom-section-host" id="customSectionsSection" hidden>
+      <div class="invite-section-inner invite-custom-inner">
+        <small>YOUR DAY · YOUR DETAILS</small>
+        <h2>
+          <span data-lang-only="ar">تفاصيلكم الخاصة</span>
+          <span data-lang-only="en">Your custom details</span>
+        </h2>
+        <div class="invite-custom-grid" id="customSectionsHost"></div>
+      </div>
+    </section>
+
+    <section class="invite-section" id="rsvpSection">
+      <div class="invite-section-inner">
+        <small>RSVP</small>
+        <h2 data-i18n="invite_rsvp"></h2>
+        <form class="rsvp-box" id="rsvpForm">
+          <div class="rsvp-options">
+            <button type="button" class="rsvp-choice active" data-response="yes" data-i18n="invite_yes"></button>
+            <button type="button" class="rsvp-choice" data-response="no" data-i18n="invite_no"></button>
+          </div>
+          <input type="hidden" name="response" value="yes">
+          <div class="field"><label data-i18n="invite_guest_name"></label><input name="guest_name" required></div>
+          <div class="field"><label data-i18n="invite_guest_count"></label><input type="number" min="1" max="20" name="guest_count" value="1"></div>
+          <div class="field"><label data-i18n="invite_note"></label><textarea name="message" rows="3"></textarea></div>
+          <button class="btn btn-primary" style="width:100%" data-i18n="invite_send_rsvp"></button>
+          <div data-rsvp-msg></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="invite-section alt guest-wall-section" id="wishesSection">
+      <div class="invite-section-inner">
+        <small>GUEST WALL · NO LOGIN</small>
+        <h2 data-i18n="invite_wishes"></h2>
+        <p class="guest-wall-lead">
+          <span data-lang-only="ar">اكتب كلمة صغيرة للعروسين. مش محتاج حساب، ورسالتك هتنزل هنا مباشرة.</span>
+          <span data-lang-only="en">Leave a short note for the couple. No account needed — it appears here right away.</span>
+        </p>
+        <form class="wish-box compact-wish-box" id="wishForm">
+          <div class="field">
+            <label><span data-lang-only="ar">اسمك — اختياري</span><span data-lang-only="en">Your name — optional</span></label>
+            <input name="guest_name" maxlength="80" autocomplete="name">
+          </div>
+          <div class="field">
+            <textarea name="message" rows="2" maxlength="280" data-i18n="invite_write_wish" data-i18n-attr="placeholder" required></textarea>
+            <small class="wish-counter"><span id="wishCount">0</span>/280</small>
+          </div>
+          <button class="btn btn-primary" data-i18n="invite_send_wish"></button>
+          <div id="wishStatus"></div>
+        </form>
+        <div class="guest-wall-feed-head">
+          <b><span data-lang-only="ar">كلمات من الأحباب</span><span data-lang-only="en">Notes from loved ones</span></b>
+          <span id="wishLiveState">● LIVE</span>
+        </div>
+        <div class="wishes-list live-wall" id="wishesList"></div>
+      </div>
+    </section>
+
+    <section class="invite-section" id="photosSection">
+      <div class="invite-section-inner">
+        <small>PHOTO WALL</small>
+        <h2 data-i18n="invite_photos"></h2>
+        <div class="upload-box-public">
+          <label class="btn btn-outline"><span data-i18n="invite_upload_photos"></span><input type="file" id="guestPhoto" accept="image/*" hidden></label>
+          <div class="field" style="margin-top:12px"><input id="photoGuestName" data-i18n="invite_guest_name" data-i18n-attr="placeholder"></div>
+          <small id="photoMsg"></small>
+        </div>
+        <div class="guest-gallery" id="guestGallery"></div>
+      </div>
+    </section>
+
+    <section class="invite-section alt" id="audioSection">
+      <div class="invite-section-inner">
+        <small>VOICE · NO LOGIN</small>
+        <h2 data-i18n="invite_audio"></h2>
+        <p class="guest-wall-lead">
+          <span data-lang-only="ar">سجّل كلمة سريعة. التسجيل يقف تلقائيًا بعد 20 ثانية ويظهر بعد اعتماد الأدمن.</span>
+          <span data-lang-only="en">Record a quick note. It stops automatically after 20 seconds and appears after moderation.</span>
+        </p>
+        <div class="audio-box">
+          <div class="field"><input id="audioGuestName" data-i18n="invite_guest_name" data-i18n-attr="placeholder"></div>
+          <button class="btn btn-primary" id="recordBtn" data-i18n="invite_record"></button>
+          <small id="recordStatus"></small>
+        </div>
+        <div class="audio-list" id="audioList"></div>
+      </div>
+    </section>
+
+    <div class="invite-footer"><span data-i18n="invite_powered"></span> ✦ <button class="mini-btn" data-lang-toggle>EN</button></div>
+  </main>
+
+  <script type="module" src="js/invitation.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!doctype html><html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Templates — WEDORA</title><link rel="stylesheet" href="css/app.css"></head>
+<body>
+<div data-site-header></div>
+<main>
+<section class="page-hero">
+  <div class="container">
+    <span class="kicker" data-i18n="templates_kicker"></span>
+    <h1 data-i18n="templates_title"></h1>
+    <p data-i18n="templates_desc"></p>
+  </div>
+</section>
+<section class="section">
+  <div class="container">
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all" data-i18n="templates_all"></button>
+      <button class="filter-btn" data-filter="wedding" data-i18n="templates_wedding"></button>
+      <button class="filter-btn" data-filter="engagement" data-i18n="templates_engagement"></button>
+      <button class="filter-btn" data-filter="katb-ketab" data-i18n="templates_katb"></button>
+    </div>
+    <div class="template-grid" id="templateGrid"></div>
+  </div>
+</section>
+</main>
+<div data-site-footer></div>
+<script type="module" src="js/common.js"></script>
+<script type="module" src="js/templates.js"></script>
+</body></html>

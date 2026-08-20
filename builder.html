@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Builder — WEDORA</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="builder-body">
+<div class="builder-shell">
+  <header class="builder-top">
+    <a class="logo" href="index.html">WED<em>O</em>RA</a>
+    <span class="builder-status" id="saveStatus"></span>
+    <div class="action-row">
+      <button class="mini-btn" data-lang-toggle>EN</button>
+      <a class="mini-btn" href="templates.html">← <span data-lang-only="ar">القوالب</span><span data-lang-only="en">Templates</span></a>
+      <button class="btn btn-wine" id="topAction" data-i18n="builder_checkout"></button>
+    </div>
+  </header>
+
+  <div class="builder-work">
+    <aside class="builder-controls">
+      <h2 data-i18n="builder_title"></h2>
+
+      <section class="builder-section">
+        <h3 data-i18n="builder_details"></h3>
+        <div class="form-grid">
+          <div class="field"><label data-i18n="builder_name1"></label><input id="partner1"></div>
+          <div class="field"><label data-i18n="builder_name2"></label><input id="partner2"></div>
+        </div>
+        <div class="field"><label data-i18n="builder_date"></label><input type="datetime-local" id="eventDate"></div>
+        <div class="form-grid">
+          <div class="field"><label data-i18n="builder_venue"></label><input id="venue"></div>
+          <div class="field"><label data-i18n="builder_city"></label><input id="city"></div>
+        </div>
+        <div class="field"><label data-i18n="builder_map"></label><input id="mapUrl" placeholder="https://maps.google.com/..."></div>
+        <div class="field"><label data-i18n="builder_message"></label><textarea id="message" rows="4"></textarea></div>
+
+        <div class="admin-row">
+          <div>
+            <b><span data-lang-only="ar">كاتب الدعوة الذكي</span><span data-lang-only="en">Smart invitation writer</span></b><br>
+            <small><span data-lang-only="ar">اختار النبرة ونولّد نص قابل للتعديل.</span><span data-lang-only="en">Pick a tone and generate editable copy.</span></small>
+          </div>
+          <div class="action-row">
+            <select id="writerTone" class="mini-btn"><option value="romantic">Romantic</option><option value="formal">Formal</option><option value="warm">Warm</option></select>
+            <button type="button" class="mini-btn primary" id="generateCopy">✦ Generate</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label data-i18n="builder_slug"></label>
+          <div style="display:flex;align-items:center;gap:6px"><small>wedora.com/i/</small><input id="slug"></div>
+          <small id="slugStatus" class="slug-status"><span data-lang-only="ar">لو الرابط مستخدم، هنختار رقم متاح تلقائيًا.</span><span data-lang-only="en">If taken, we will choose an available version automatically.</span></small>
+        </div>
+      </section>
+
+      <section class="builder-section">
+        <h3 data-i18n="builder_template"></h3>
+        <div class="builder-template-row" id="builderTemplates"></div>
+        <div class="field" style="margin-top:12px"><label data-i18n="builder_accent"></label><input id="accent" type="color" value="#9b6f48" style="height:42px;padding:4px"></div>
+      </section>
+
+      <section class="builder-section">
+        <h3 data-i18n="builder_media"></h3>
+        <div class="field">
+          <label data-i18n="builder_hero"></label>
+          <label class="upload-zone"><span data-lang-only="ar">ارفع صورة خاصة لو عايز — القالب نفسه شغال من غير صورة</span><span data-lang-only="en">Upload a personal cover if you want — the template works without one</span><input id="heroFile" type="file" accept="image/*" hidden></label>
+          <small id="heroName"></small>
+          <button class="mini-btn" type="button" id="clearHero" style="margin-top:7px"><span data-lang-only="ar">استخدم خلفية القالب</span><span data-lang-only="en">Use template background</span></button>
+        </div>
+        <div class="field"><label data-i18n="builder_gallery"></label><label class="upload-zone"><span data-lang-only="ar">حتى 8 صور</span><span data-lang-only="en">Up to 8 photos</span><input id="galleryFiles" type="file" accept="image/*" multiple hidden></label><small id="galleryName"></small></div>
+        <div class="field"><label data-i18n="builder_song"></label><label class="upload-zone"><span>MP3 / M4A</span><input id="songFile" type="file" accept="audio/*" hidden></label><small id="songName"></small></div>
+      </section>
+
+      <section class="builder-section">
+        <h3 data-i18n="builder_features"></h3>
+        <div id="featureToggles" class="admin-list"></div>
+      </section>
+
+      <section class="builder-section custom-builder-section">
+        <div class="builder-section-title-row">
+          <div>
+            <h3><span data-lang-only="ar">أقسام إضافية للفرح</span><span data-lang-only="en">Custom wedding sections</span></h3>
+            <p><span data-lang-only="ar">ضيف أي تفاصيل زيادة من غير ما تغيّر الكود: برنامج اليوم، Dress Code، مواصلات، فندق، هدايا، قصتكم أو لينك خاص.</span><span data-lang-only="en">Add extra details without touching code: schedule, dress code, transport, hotel, gifts, your story or a custom link.</span></p>
+          </div>
+        </div>
+        <div class="custom-add-row">
+          <select id="customSectionType">
+            <option value="schedule">🕰 Schedule</option>
+            <option value="dress_code">✦ Dress Code</option>
+            <option value="transport">↗ Transport</option>
+            <option value="accommodation">⌂ Hotel / Stay</option>
+            <option value="gift">♡ Gifts</option>
+            <option value="story">∞ Our Story</option>
+            <option value="note">✉ Note</option>
+            <option value="link">↗ Custom Link</option>
+          </select>
+          <button class="mini-btn primary" type="button" id="addCustomSection">+ <span data-lang-only="ar">إضافة</span><span data-lang-only="en">Add</span></button>
+        </div>
+        <div class="custom-section-editor-list" id="customSectionsEditor"></div>
+      </section>
+
+      <div class="action-row" style="padding-top:15px">
+        <button class="btn btn-outline" id="saveDraft" data-i18n="builder_save"></button>
+        <button class="btn btn-outline" id="trialBtn"><span data-lang-only="ar">جرّب 24 ساعة</span><span data-lang-only="en">Try 24 hours</span></button>
+        <button class="btn btn-wine" id="checkoutBtn" data-i18n="builder_checkout"></button>
+      </div>
+    </aside>
+
+    <main class="builder-preview">
+      <div class="builder-preview-stage">
+        <div class="builder-device-toolbar">
+          <span><span data-lang-only="ar">المعاينة</span><span data-lang-only="en">Preview</span></span>
+          <div class="device-switch">
+            <button class="mini-btn active" type="button" data-device="phone">Phone</button>
+            <button class="mini-btn" type="button" data-device="tablet">Tablet</button>
+          </div>
+        </div>
+
+        <div class="builder-phone" id="builderDevice">
+          <div class="builder-phone-inner">
+            <article class="preview-invite" id="previewInvite">
+              <section class="preview-cover-v2" id="previewCover">
+                <div class="preview-cover-art" id="previewCoverArt"></div>
+                <div class="preview-cover-meta">
+                  <small>OUR CELEBRATION</small>
+                  <h2 id="previewNames"></h2>
+                  <small id="previewDate"></small>
+                </div>
+              </section>
+
+              <section class="preview-section">
+                <small id="previewVenue" style="color:var(--accent)"></small>
+                <h3 id="previewNames2"></h3>
+                <p id="previewMessage"></p>
+                <div class="preview-countdown">
+                  <div><b>42</b><span data-i18n="invite_days"></span></div><div><b>08</b><span data-i18n="invite_hours"></span></div><div><b>12</b><span data-i18n="invite_minutes"></span></div><div><b>32</b><span data-i18n="invite_seconds"></span></div>
+                </div>
+              </section>
+
+              <div class="preview-custom-grid" id="previewCustomSections"></div>
+              <div class="preview-gallery" id="previewGallery"></div>
+
+              <section class="preview-section" style="background:rgba(255,255,255,.5)">
+                <small>RSVP</small><h3 data-i18n="invite_rsvp"></h3><button class="btn btn-primary" data-i18n="invite_yes"></button>
+              </section>
+
+              <section class="preview-section preview-guest-wall">
+                <small>GUEST WALL</small>
+                <h3><span data-lang-only="ar">كلمة صغيرة تفضل معاكم</span><span data-lang-only="en">A little note that stays</span></h3>
+                <div class="preview-composer"><span data-lang-only="ar">اكتب كلمة من غير تسجيل دخول…</span><span data-lang-only="en">Write a note without signing in…</span></div>
+                <div class="preview-wish"><b>Guest</b><p><span data-lang-only="ar">ربنا يسعدكم ويكمل لكم على خير 🤍</span><span data-lang-only="en">Wishing you a lifetime of happiness 🤍</span></p></div>
+                <div class="preview-voice">🎙 <span data-lang-only="ar">رسالة صوتية قصيرة · 20 ثانية</span><span data-lang-only="en">Short voice note · 20 sec</span></div>
+              </section>
+            </article>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script type="module" src="js/builder.js"></script>
+</body>
+</html>
