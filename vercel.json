@@ -1,5 +1,28 @@
 {
   "rewrites": [
-    { "source": "/w/:slug", "destination": "/invitation.html" }
+    {
+      "source": "/w/:slug",
+      "destination": "/invitation.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/invitation.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    },
+    {
+      "source": "/w/:slug",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    }
   ]
 }

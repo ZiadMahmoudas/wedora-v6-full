@@ -3,24 +3,46 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <base href="/">
   <title>Invitation — WEDORA</title>
-  <link rel="stylesheet" href="css/app.css">
-  <link rel="stylesheet" href="css/templates.css"><link rel="stylesheet" href="css/story-studio.css">
+  <link rel="stylesheet" href="/css/app.css?v=20260822.7">
+  <link rel="stylesheet" href="/css/templates.css?v=20260822.7">
+  <link rel="stylesheet" href="/css/story-studio.css?v=20260822.7">
 </head>
 <body class="invitation-body">
   <div class="invitation-gate" id="gate">
     <div class="gate-art" id="gateArt" aria-hidden="true"></div>
     <div class="gate-card">
-      <small class="gate-eyebrow">YOU ARE INVITED</small>
-      <span class="gate-mark">✦</span>
+      <small class="gate-eyebrow">
+        <span data-lang-only="ar">دعوة خاصة</span>
+        <span data-lang-only="en">YOU ARE INVITED</span>
+      </small>
+      <span class="gate-mark" aria-hidden="true">✦</span>
       <h1 data-names></h1>
-      <p data-i18n="invite_open"></p>
-      <button class="gate-open" id="gateOpen" aria-label="Open invitation">✦</button>
+      <p class="gate-instruction">
+        <span data-lang-only="ar">اضغط على النجمة لفتح الدعوة</span>
+        <span data-lang-only="en">Tap the star to open the invitation</span>
+      </p>
+      <button class="gate-open" id="gateOpen" aria-label="Open invitation">
+        <span class="gate-star-icon" aria-hidden="true">✦</span>
+        <span class="gate-open-label">
+          <span data-lang-only="ar">افتح الدعوة</span>
+          <span data-lang-only="en">OPEN</span>
+        </span>
+      </button>
       <small class="gate-help">
-        <span data-lang-only="ar">اضغط مرة واحدة — الموسيقى والحركة تبدأ بهدوء</span>
-        <span data-lang-only="en">Tap once — music and gentle motion begin</span>
+        <span data-lang-only="ar">بعد الفتح تبدأ الموسيقى والحركة الهادئة تلقائيًا</span>
+        <span data-lang-only="en">Music and gentle motion begin after opening</span>
       </small>
     </div>
+  </div>
+
+  <div class="invite-admin-bar" id="inviteAdminBar" hidden>
+    <div>
+      <b>وضع الإدارة</b>
+      <span>تقدر تحذف أي كلمة أو محتوى غير لائق من داخل الدعوة.</span>
+    </div>
+    <a class="invite-admin-link" href="/admin.html#memories">لوحة المراجعة</a>
   </div>
 
   <button class="inv-music" id="musicBtn" aria-label="Music">♫</button>
@@ -165,6 +187,6 @@
     <div class="invite-footer"><span data-i18n="invite_powered"></span> ✦ <button class="mini-btn" data-lang-toggle>EN</button></div>
   </main>
 
-  <script type="module" src="js/invitation.js?v=20260822.3"></script>
+  <script type="module" src="/js/invitation.js?v=20260822.7"></script>
 </body>
 </html>

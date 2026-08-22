@@ -1,5 +1,5 @@
 import { CONFIG } from './config.js';
-import { getSupabase,getInvitationBySlug,uploadFile } from './supabase.js';
+import { getSupabase,getInvitationBySlug,uploadFile,getUser,getProfile } from './supabase.js';
 import { fallbackExamples,fallbackTemplates } from './data.js';
 import { initI18n,getLang,t } from './i18n.js';
 import { $,escapeHtml,safeUrl,isTemplatePreviewAsset,formatDate,clamp,validateMediaFile } from './utils.js';
@@ -8,8 +8,45 @@ initI18n();
 const q=new URLSearchParams(location.search);
 const pathSlug=(()=>{const m=location.pathname.match(/\/w\/([^/?#]+)/);try{return m?decodeURIComponent(m[1]):''}catch{return m?.[1]||''}})();
 const slug=q.get('slug')||pathSlug||'ahmed-salma';
-let invite=null,recorder,chunks=[],recordTimer=null,recordTicker=null,memoryChannel=null,memoryPoll=null;
+let invite=null,recorder,chunks=[],recordTimer=null,recordTicker=null,memoryChannel=null,memoryPoll=null,isAdminViewer=false;
 let autoScrollRaf=null,autoScrollActive=false,autoScrollResumeTimer=null,gateOpened=false,autoScrollCompleted=false,autoScrollManuallyDisabled=false,autoScrollPosition=0;
+
+async function detectAdminViewer(){
+  try{
+    const user=await getUser();
+    if(!user)return false;
+    const profile=await getProfile(user);
+    return profile?.role==='admin';
+  }catch(e){
+    console.warn('Admin viewer check skipped',e);
+    return false;
+  }
+}
+
+function enableAdminInviteMode(){
+  if(!isAdminViewer)return;
+  document.body.classList.add('admin-viewing-invite');
+  const bar=$('#inviteAdminBar');
+  if(bar)bar.hidden=false;
+}
+
+async function deleteGuestMemory(id){
+  if(!isAdminViewer||!id)return;
+  const ok=confirm(getLang()==='ar'?'حذف المحتوى ده نهائيًا من الدعوة؟':'Permanently remove this guest content?');
+  if(!ok)return;
+  const sb=await getSupabase();
+  if(!sb)return;
+  const {error}=await sb.from('guest_memories').delete().eq('id',id);
+  if(error){alert(error.message);return}
+  await loadMemories();
+}
+
+function bindAdminMemoryActions(){
+  if(!isAdminViewer)return;
+  document.querySelectorAll('[data-admin-memory-delete]').forEach(btn=>{
+    btn.onclick=e=>{e.preventDefault();e.stopPropagation();deleteGuestMemory(btn.dataset.adminMemoryDelete)};
+  });
+}
 
 function customSections(){return Array.isArray(invite?.features_config?.custom_sections)?invite.features_config.custom_sections.filter(x=>x&&x.enabled!==false):[]}
 
@@ -280,11 +317,16 @@ $('#recordBtn').onclick=async()=>{
 async function loadMemories({scrollToEnd=false}={}){
   const sb=await getSupabase();
   if(!sb){$('#wishesList').innerHTML='<article class="wish-card"><p>ربنا يسعدكم ويكمل لكم على خير 🤍</p><small>Guest</small></article>';return}
-  const {data,error}=await sb.from('guest_memories').select('*').eq('invitation_id',invite.id).eq('approved',true).order('created_at',{ascending:true});if(error)return;
+  let query=sb.from('guest_memories').select('*').eq('invitation_id',invite.id);
+  if(!isAdminViewer)query=query.eq('approved',true);
+  const {data,error}=await query.order('created_at',{ascending:true});if(error){console.warn(error);return}
   const rows=data||[],wishes=rows.filter(x=>x.type==='wish');
-  $('#wishesList').innerHTML=wishes.length?wishes.map(x=>`<article class="wish-card"><p>${escapeHtml(x.message||'')}</p><small>${escapeHtml(x.guest_name||(getLang()==='ar'?'ضيف':'Guest'))}</small></article>`).join(''):`<div class="guest-wall-empty">${getLang()==='ar'?'اكتب أول كلمة 🤍':'Be the first to leave a note 🤍'}</div>`;
-  $('#guestGallery').innerHTML=rows.filter(x=>x.type==='photo').map(x=>`<img src="${escapeHtml(x.media_url||'')}" alt="">`).join('');
-  $('#audioList').innerHTML=rows.filter(x=>x.type==='audio').map(x=>`<div class="audio-item"><small>${escapeHtml(x.guest_name||(getLang()==='ar'?'ضيف':'Guest'))}</small><audio controls preload="metadata" src="${escapeHtml(x.media_url||'')}"></audio></div>`).join('');
+  const adminDelete=x=>isAdminViewer?`<button class="memory-inline-delete" type="button" data-admin-memory-delete="${escapeHtml(x.id)}">حذف</button>`:'';
+  const moderationState=x=>isAdminViewer&&!x.approved?'<span class="memory-pending-badge">قيد المراجعة</span>':'';
+  $('#wishesList').innerHTML=wishes.length?wishes.map(x=>`<article class="wish-card ${isAdminViewer?'admin-moderatable':''}"><div class="wish-card-top"><small>${escapeHtml(x.guest_name||(getLang()==='ar'?'ضيف':'Guest'))}</small>${moderationState(x)}${adminDelete(x)}</div><p>${escapeHtml(x.message||'')}</p></article>`).join(''):`<div class="guest-wall-empty">${getLang()==='ar'?'اكتب أول كلمة 🤍':'Be the first to leave a note 🤍'}</div>`;
+  $('#guestGallery').innerHTML=rows.filter(x=>x.type==='photo').map(x=>`<figure class="guest-photo-item"><img src="${escapeHtml(x.media_url||'')}" alt="">${moderationState(x)}${adminDelete(x)}</figure>`).join('');
+  $('#audioList').innerHTML=rows.filter(x=>x.type==='audio').map(x=>`<div class="audio-item admin-moderatable"><div class="audio-item-head"><small>${escapeHtml(x.guest_name||(getLang()==='ar'?'ضيف':'Guest'))}</small>${moderationState(x)}${adminDelete(x)}</div><audio controls preload="metadata" src="${escapeHtml(x.media_url||'')}"></audio></div>`).join('');
+  bindAdminMemoryActions();
   if(scrollToEnd&&wishes.length){const last=$('#wishesList').lastElementChild;last?.scrollIntoView({behavior:'smooth',block:'nearest'})}
 }
 
@@ -292,7 +334,9 @@ async function subscribeMemories(){
   const sb=await getSupabase();if(!sb||!invite?.id||invite.id==='demo')return;
   try{
     memoryChannel=sb.channel(`guest-wall-${invite.id}`)
-      .on('postgres_changes',{event:'INSERT',schema:'public',table:'guest_memories',filter:`invitation_id=eq.${invite.id}`},payload=>{if(payload.new?.approved)loadMemories({scrollToEnd:true})})
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'guest_memories',filter:`invitation_id=eq.${invite.id}`},payload=>{if(isAdminViewer||payload.new?.approved)loadMemories({scrollToEnd:true})})
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'guest_memories',filter:`invitation_id=eq.${invite.id}`},()=>loadMemories())
+      .on('postgres_changes',{event:'DELETE',schema:'public',table:'guest_memories'},()=>loadMemories())
       .subscribe(status=>{if($('#wishLiveState'))$('#wishLiveState').textContent=status==='SUBSCRIBED'?'● LIVE':'●';});
   }catch{}
   clearInterval(memoryPoll);memoryPoll=setInterval(()=>loadMemories(),12000);
@@ -300,10 +344,12 @@ async function subscribeMemories(){
 
 async function boot(){
   try{
-    invite=await getInvitationBySlug(slug);
+    isAdminViewer=await detectAdminViewer();
+    invite=await getInvitationBySlug(slug,{allowOwner:isAdminViewer});
     if(!invite&&CONFIG.DEMO_MODE)invite=demoInvite();
     if(!invite){document.body.innerHTML=`<div style="text-align:center;padding:20vh 20px;font-family:system-ui"><h1>${getLang()==='ar'?'الدعوة غير متاحة':'Invitation unavailable'}</h1><p>${getLang()==='ar'?'قد تكون ما زالت قيد مراجعة الدفع أو انتهت مدتها.':'It may still be pending payment review or has expired.'}</p></div>`;return}
     invite.features_config=normalizeFeatures(invite.features_config);
+    enableAdminInviteMode();
     render();subscribeMemories();
   }catch(e){console.error(e)}
 }
