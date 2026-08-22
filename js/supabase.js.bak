@@ -183,25 +183,13 @@ export function getDemoInvitationBySlug(slug,{activeOnly=false}={}){
   return activeOnly&&row.status!=="active"?null:row;
 }
 
-function compactDemoInvitation(row={}){
-  const next={...row};
-  if(/^(blob:|data:)/i.test(String(next.hero_image_url||'')))next.hero_image_url='';
-  if(/^(blob:|data:)/i.test(String(next.song_url||'')))next.song_url='';
-  next.gallery_urls=(Array.isArray(next.gallery_urls)?next.gallery_urls:[]).filter(x=>!(/^(blob:|data:)/i.test(String(x)))).slice(0,8);
-  return next;
-}
-
 export function upsertDemoInvitation(invitation){
-  let rows=listDemoInvitations().map(compactDemoInvitation);
+  const rows=listDemoInvitations();
   const now=new Date().toISOString();
-  const next=compactDemoInvitation({...invitation,id:invitation.id||randomId("invite"),updated_at:now,created_at:invitation.created_at||now});
+  const next={...invitation,id:invitation.id||randomId("invite"),updated_at:now,created_at:invitation.created_at||now};
   const index=rows.findIndex(row=>row.id===next.id);
   if(index>=0)rows[index]=next;else rows.unshift(next);
-  try{writeJson(DEMO_INVITATIONS_KEY,rows)}catch(err){
-    // Keep recent demo invitations if an old local test filled the browser quota.
-    rows=rows.slice(0,20);
-    try{localStorage.removeItem(DEMO_INVITATIONS_KEY);writeJson(DEMO_INVITATIONS_KEY,rows)}catch(e){console.warn('WEDORA demo storage is full',e)}
-  }
+  writeJson(DEMO_INVITATIONS_KEY,rows);
   return next;
 }
 
@@ -309,15 +297,7 @@ export async function currentDraft(){
 }
 
 export function saveLocalDraft(draft){
-  try{return writeJson("wedora_draft",draft)}catch(err){
-    // Old builder versions could leave very large data/blob URLs in localStorage.
-    // Keep the editable text/config instead of letting one quota error kill all buttons.
-    const compact={...draft};
-    if(String(compact.hero_image_url||'').startsWith('data:'))compact.hero_image_url='';
-    if(String(compact.song_url||'').startsWith('data:'))compact.song_url='';
-    compact.gallery_urls=(Array.isArray(compact.gallery_urls)?compact.gallery_urls:[]).filter(x=>!String(x).startsWith('data:')).slice(0,8);
-    try{localStorage.removeItem("wedora_draft");return writeJson("wedora_draft",compact)}catch(e){console.warn('WEDORA local draft storage is full',e);return false}
-  }
+  writeJson("wedora_draft",draft);
 }
 
 export function clearLocalDraft(){

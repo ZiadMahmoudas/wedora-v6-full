@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Invitation — WEDORA</title>
   <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/templates.css"><link rel="stylesheet" href="css/story-studio.css">
 </head>
 <body class="invitation-body">
   <div class="invitation-gate" id="gate">
@@ -28,13 +29,25 @@
   </button>
   <audio id="inviteAudio" loop preload="metadata"></audio>
 
+  <div class="story-ambient" aria-hidden="true">
+    <i>♥</i><i>♥</i><i>✦</i><i>♥</i><i>✦</i><i>♥</i><i>♥</i><i>✦</i>
+  </div>
+
   <main class="invite-main" id="inviteMain">
-    <section class="invite-cover" id="inviteHero">
-      <div class="invite-cover-art" id="inviteHeroArt" aria-hidden="true"></div>
-      <div class="invite-cover-meta">
-        <small>OUR CELEBRATION</small>
-        <h1 data-names></h1>
-        <small data-date></small>
+    <section class="invite-cover story-cover" id="inviteHero">
+      <div class="story-cover-frame" id="storyCoverFrame">
+        <div class="invite-cover-art story-cover-media" id="inviteHeroArt" aria-hidden="true"></div>
+        <div class="story-cover-ornament" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+        </div>
+        <div class="invite-cover-meta story-cover-copy">
+          <small>OUR CELEBRATION</small>
+          <h1 data-names></h1>
+          <small data-date></small>
+        </div>
+      </div>
+      <div class="story-scroll-cue" aria-hidden="true">
+        <span>SCROLL</span><i></i>
       </div>
     </section>
 

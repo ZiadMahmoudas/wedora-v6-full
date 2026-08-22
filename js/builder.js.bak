@@ -10,7 +10,6 @@ import {
 import {
   CUSTOM_SECTION_PRESETS,STORY_COVER_STYLES,normalizeFeatures,createDefaultDraft
 } from './invitation-config.js';
-import { CONFIG } from './config.js';
 
 initI18n();
 
@@ -20,68 +19,20 @@ let editId=query.get('id');
 const selectedPlan=query.get('plan');
 let state=createDefaultDraft(query.get('t')||'classic-ivory');
 const featureKeys=['song','countdown','rsvp','wishes','guest_photos','audio_guestbook','auto_scroll'];
-let bindingsReady=false;
-let statusTimer=null;
 
-function status(text,{error=false,sticky=false}={}){
-  const el=$('#saveStatus');
-  if(!el)return;
-  clearTimeout(statusTimer);
-  el.textContent=text||'';
-  el.classList.toggle('is-error',!!error);
-  if(text&&!sticky)statusTimer=setTimeout(()=>{el.textContent='';el.classList.remove('is-error')},3200);
-}
-function setBusy(btn,busy,label=''){
-  if(!btn)return;
-  if(busy){btn.dataset.oldText=btn.innerHTML;btn.disabled=true;btn.classList.add('loading');if(label)btn.textContent=label}
-  else{btn.disabled=false;btn.classList.remove('loading');if(btn.dataset.oldText){btn.innerHTML=btn.dataset.oldText;delete btn.dataset.oldText}}
-}
-function normalizeDraftShape(raw,templateSlug=state.template_slug||'classic-ivory'){
-  const base=createDefaultDraft(templateSlug);
-  const next={...base,...(raw&&typeof raw==='object'?raw:{})};
-  next.template_slug=String(next.template_slug||templateSlug||'classic-ivory');
-  next.partner1_name=String(next.partner1_name||'');
-  next.partner2_name=String(next.partner2_name||'');
-  next.venue_name=String(next.venue_name||'');
-  next.city=String(next.city||'');
-  next.map_url=String(next.map_url||'');
-  next.message=String(next.message||'');
-  next.slug=cleanSlug(next.slug||base.slug);
-  next.accent=/^#[0-9a-f]{6}$/i.test(String(next.accent||''))?next.accent:'#9b6f48';
-  next.hero_image_url=typeof next.hero_image_url==='string'?next.hero_image_url:'';
-  next.song_url=typeof next.song_url==='string'?next.song_url:'';
-  next.gallery_urls=Array.isArray(next.gallery_urls)?next.gallery_urls.filter(x=>typeof x==='string').slice(0,8):[];
-  next.features_config=normalizeFeatures(next.features_config||{});
-  return next;
-}
-async function getBuilderUser({autoDemo=true}={}){
-  let user=await getUser();
-  if(!user&&autoDemo&&CONFIG.DEMO_MODE){
-    try{
-      localStorage.setItem('wedora_demo_auth','1');
-      localStorage.setItem('wedora_demo_role','user');
-      localStorage.setItem('wedora_demo_name','Demo Customer');
-      user=await getUser();
-    }catch{}
-  }
-  return user;
-}
-
+function status(text){$('#saveStatus').textContent=text;setTimeout(()=>{$('#saveStatus').textContent=''},2200)}
 function serializable(){
   const copy={...state,features_config:normalizeFeatures(state.features_config)};
   delete copy._heroFile;delete copy._galleryFiles;delete copy._songFile;
-  if(/^(blob:|data:)/i.test(String(copy.hero_image_url||'')))copy.hero_image_url='';
-  copy.gallery_urls=(Array.isArray(copy.gallery_urls)?copy.gallery_urls:[]).filter(url=>!(/^(blob:|data:)/i.test(String(url))));
-  if(/^(blob:|data:)/i.test(String(copy.song_url||'')))copy.song_url='';
+  if(String(copy.hero_image_url||'').startsWith('blob:'))copy.hero_image_url='';
+  copy.gallery_urls=(copy.gallery_urls||[]).filter(url=>!String(url).startsWith('blob:'));
+  if(String(copy.song_url||'').startsWith('blob:'))copy.song_url='';
   return copy;
 }
 function isDuplicateSlugError(err){return err?.code==='23505'&&String(err?.message||'').includes('invitations_slug_key')}
 function customSections(){state.features_config=normalizeFeatures(state.features_config);return state.features_config.custom_sections}
 function syncReturnedSlug(oldSlug){if($('#slug'))$('#slug').value=state.slug||'';if($('#slugStatus')){$('#slugStatus').textContent=state.slug!==oldSlug?(getLang()==='ar'?`الرابط كان مستخدمًا؛ اخترنا لك /${state.slug} تلقائيًا ✓`:`That link was taken; we changed it to /${state.slug} automatically ✓`):(getLang()==='ar'?`رابطك: /${state.slug}`:`Your link: /${state.slug}`);$('#slugStatus').className=state.slug!==oldSlug?'slug-status changed':'slug-status'}}
-function persist(){
-  try{saveLocalDraft(serializable());status(getLang()==='ar'?'محفوظ محليًا ✓':'Saved locally ✓');return true}
-  catch(e){console.warn('Local draft save failed',e);status(getLang()==='ar'?'تعذر الحفظ المحلي — هنكمل الحفظ على الحساب':'Local save failed — continuing with account save',{error:true});return false}
-}
+function persist(){saveLocalDraft(serializable());status(getLang()==='ar'?'محفوظ محليًا ✓':'Saved locally ✓')}
 
 function fill(){
   const map={partner1_name:'#partner1',partner2_name:'#partner2',event_date:'#eventDate',venue_name:'#venue',city:'#city',map_url:'#mapUrl',message:'#message',slug:'#slug',accent:'#accent'};
@@ -90,49 +41,51 @@ function fill(){
 }
 
 function bind(){
-  if(bindingsReady)return;
-  bindingsReady=true;
-  const on=(sel,event,handler)=>{const el=$(sel);if(el)el.addEventListener(event,handler);return el};
   const map={partner1_name:'#partner1',partner2_name:'#partner2',event_date:'#eventDate',venue_name:'#venue',city:'#city',map_url:'#mapUrl',message:'#message',slug:'#slug',accent:'#accent'};
-  for(const [k,sel] of Object.entries(map))on(sel,'input',e=>{
+  for(const [k,s] of Object.entries(map))$(s).addEventListener('input',e=>{
     state[k]=k==='slug'?cleanSlug(e.target.value):e.target.value;
     if(k==='slug'&&e.target.value!==state[k])e.target.value=state[k];
-    try{saveLocalDraft(serializable())}catch{}
-    render();
+    saveLocalDraft(serializable());render();
   });
-  on('#slug','blur',()=>{state.slug=cleanSlug(state.slug);const el=$('#slug');if(el)el.value=state.slug;syncReturnedSlug(state.slug);try{saveLocalDraft(serializable())}catch{}});
-  on('#heroFile','change',e=>{
+  $('#slug').addEventListener('blur',()=>{state.slug=cleanSlug(state.slug);$('#slug').value=state.slug;syncReturnedSlug(state.slug);saveLocalDraft(serializable())});
+  $('#heroFile').onchange=e=>{
     const f=e.target.files?.[0];if(!f)return;
-    try{validateMediaFile(f,{kind:'image',maxMB:8});revokeObjectUrl(state.hero_image_url);state._heroFile=f;state.hero_image_url=URL.createObjectURL(f);if($('#heroName'))$('#heroName').textContent=f.name;render()}
+    try{validateMediaFile(f,{kind:'image',maxMB:8});revokeObjectUrl(state.hero_image_url);state._heroFile=f;state.hero_image_url=URL.createObjectURL(f);$('#heroName').textContent=f.name;render()}
     catch(err){e.target.value='';alert(err.message||err)}
-  });
-  on('#clearHero','click',()=>{revokeObjectUrl(state.hero_image_url);delete state._heroFile;state.hero_image_url='';if($('#heroFile'))$('#heroFile').value='';if($('#heroName'))$('#heroName').textContent=getLang()==='ar'?'بدون صورة — هنعرض الستايل السادة':'No photo — styled blank cover active';try{saveLocalDraft(serializable())}catch{};render()});
-  on('#galleryFiles','change',e=>{
-    try{const files=[...(e.target.files||[])].slice(0,8);files.forEach(f=>validateMediaFile(f,{kind:'image',maxMB:8}));(state.gallery_urls||[]).forEach(revokeObjectUrl);state._galleryFiles=files;state.gallery_urls=files.map(URL.createObjectURL);if($('#galleryName'))$('#galleryName').textContent=`${files.length} files`;render()}
+  };
+  $('#clearHero').onclick=()=>{revokeObjectUrl(state.hero_image_url);delete state._heroFile;state.hero_image_url='';$('#heroFile').value='';$('#heroName').textContent=getLang()==='ar'?'بدون صورة — هنعرض الستايل السادة':'No photo — styled blank cover active';saveLocalDraft(serializable());render()};
+  $('#galleryFiles').onchange=e=>{
+    try{const files=[...(e.target.files||[])].slice(0,8);files.forEach(f=>validateMediaFile(f,{kind:'image',maxMB:8}));(state.gallery_urls||[]).forEach(revokeObjectUrl);state._galleryFiles=files;state.gallery_urls=files.map(URL.createObjectURL);$('#galleryName').textContent=`${files.length} files`;render()}
     catch(err){e.target.value='';alert(err.message||err)}
-  });
-  on('#songFile','change',e=>{
+  };
+  $('#songFile').onchange=e=>{
     const f=e.target.files?.[0];if(!f)return;
-    try{validateMediaFile(f,{kind:'audio',maxMB:15});revokeObjectUrl(state.song_url);state._songFile=f;state.song_url=URL.createObjectURL(f);if($('#songName'))$('#songName').textContent=f.name;render()}
+    try{validateMediaFile(f,{kind:'audio',maxMB:15});revokeObjectUrl(state.song_url);state._songFile=f;state.song_url=URL.createObjectURL(f);$('#songName').textContent=f.name;render()}
     catch(err){e.target.value='';alert(err.message||err)}
+  };
+  $('#saveDraft').onclick=saveDraft;$('#checkoutBtn').onclick=goCheckout;$('#topAction').onclick=goCheckout;$('#trialBtn').onclick=startTrial;$('#generateCopy').onclick=generateCopy;
+  $('#addCustomSection').onclick=()=>addCustomSection($('#customSectionType').value);
+  if($('#heroPosition'))$('#heroPosition').oninput=e=>{
+    const v=Number(e.target.value);
+    state.features_config={...coverConfig(),story_cover_position:v};
+    $('#heroPositionValue').textContent=`${v}%`;
+    saveLocalDraft(serializable());render();
+  };
+  if($('#heroOverlay'))$('#heroOverlay').oninput=e=>{
+    const v=Number(e.target.value);
+    state.features_config={...coverConfig(),story_cover_overlay:v};
+    $('#heroOverlayValue').textContent=`${v}%`;
+    saveLocalDraft(serializable());render();
+  };
+  ['#heroFile','#galleryFiles','#songFile'].forEach(sel=>$(sel).addEventListener('click',e=>{if(!loggedIn){e.preventDefault();persist();location.href='auth.html?next='+encodeURIComponent(location.pathname.split('/').pop()+location.search)}}));
+  $('#membershipRefreshBtn').onclick=refreshMembership;
+  $$('[data-jump]').forEach(btn=>btn.onclick=()=>document.getElementById(btn.dataset.jump)?.scrollIntoView({behavior:'smooth',block:'start'}));
+  $$('[data-device]').forEach(btn=>btn.onclick=()=>{
+    $$('[data-device]').forEach(x=>x.classList.toggle('active',x===btn));
+    $('#builderDevice').classList.toggle('is-tablet',btn.dataset.device==='tablet');
   });
-
-  on('#saveDraft','click',async e=>{
-    const btn=e.currentTarget;setBusy(btn,true,getLang()==='ar'?'جاري الحفظ…':'Saving…');status(getLang()==='ar'?'جاري حفظ المسودة…':'Saving draft…',{sticky:true});
-    try{await saveDraft()}catch(err){console.error(err);status(err.message||String(err),{error:true})}finally{setBusy(btn,false)}
-  });
-  on('#checkoutBtn','click',async e=>{const btn=e.currentTarget;setBusy(btn,true,getLang()==='ar'?'جاري المتابعة…':'Continuing…');try{await goCheckout()}finally{setBusy(btn,false)}});
-  on('#topAction','click',async e=>{const btn=e.currentTarget;setBusy(btn,true,getLang()==='ar'?'جاري المتابعة…':'Continuing…');try{await goCheckout()}finally{setBusy(btn,false)}});
-  on('#trialBtn','click',async e=>{const btn=e.currentTarget;setBusy(btn,true,getLang()==='ar'?'جاري تجهيز التجربة…':'Starting trial…');try{await startTrial()}finally{setBusy(btn,false)}});
-  on('#generateCopy','click',generateCopy);
-  on('#addCustomSection','click',()=>{addCustomSection($('#customSectionType')?.value||'note');status(getLang()==='ar'?'تمت إضافة القسم ✓':'Section added ✓')});
-  on('#heroPosition','input',e=>{const v=Number(e.target.value);state.features_config={...coverConfig(),story_cover_position:v};if($('#heroPositionValue'))$('#heroPositionValue').textContent=`${v}%`;try{saveLocalDraft(serializable())}catch{};render()});
-  on('#heroOverlay','input',e=>{const v=Number(e.target.value);state.features_config={...coverConfig(),story_cover_overlay:v};if($('#heroOverlayValue'))$('#heroOverlayValue').textContent=`${v}%`;try{saveLocalDraft(serializable())}catch{};render()});
-  ['#heroFile','#galleryFiles','#songFile'].forEach(sel=>on(sel,'click',async e=>{if(!loggedIn&&!CONFIG.DEMO_MODE){e.preventDefault();persist();location.href='auth.html?next='+encodeURIComponent(location.pathname.split('/').pop()+location.search)}}));
-  on('#membershipRefreshBtn','click',refreshMembership);
-  $$('[data-jump]').forEach(btn=>btn.addEventListener('click',()=>document.getElementById(btn.dataset.jump)?.scrollIntoView({behavior:'smooth',block:'start'})));
-  $$('[data-device]').forEach(btn=>btn.addEventListener('click',()=>{$$('[data-device]').forEach(x=>x.classList.toggle('active',x===btn));$('#builderDevice')?.classList.toggle('is-tablet',btn.dataset.device==='tablet')}));
 }
+
 
 function coverConfig(){state.features_config=normalizeFeatures(state.features_config);return state.features_config}
 
@@ -198,13 +151,7 @@ function renderFeatures(){
 function addCustomSection(type){
   const p=CUSTOM_SECTION_PRESETS[type]||CUSTOM_SECTION_PRESETS.note;
   customSections().push({id:randomId('section'),type,icon:p.icon||'✦',title_ar:p.title_ar,title_en:p.title_en,body_ar:p.body_ar,body_en:p.body_en,button_label_ar:p.button_label_ar||'',button_label_en:p.button_label_en||'',url:p.url||'',layout:'card',enabled:true});
-  try{saveLocalDraft(serializable())}catch{}
-  renderCustomEditor();render();
-  requestAnimationFrame(()=>{
-    const cards=$$('.custom-editor-card');
-    const card=cards[cards.length-1];
-    if(card){card.classList.add('just-added');card.scrollIntoView({behavior:'smooth',block:'nearest'});setTimeout(()=>card.classList.remove('just-added'),1400)}
-  });
+  saveLocalDraft(serializable());renderCustomEditor();render();
 }
 
 function moveCustom(index,dir){
@@ -218,7 +165,7 @@ function renderCustomEditor(){
   const l=getLang(),rows=customSections();
   $('#customSectionsEditor').innerHTML=rows.length?rows.map((x,i)=>`<article class="custom-editor-card" data-custom-index="${i}">
     <div class="custom-editor-head">
-      <div><span class="custom-editor-icon">${escapeHtml(x.icon||'✦')}</span><b>${escapeHtml(l==='ar'?(x.title_ar||x.title_en):(x.title_en||x.title_ar))}</b><small>${escapeHtml(x.type||'note')}</small></div>
+      <div><span class="custom-editor-icon">${x.icon||'✦'}</span><b>${l==='ar'?(x.title_ar||x.title_en):(x.title_en||x.title_ar)}</b><small>${x.type||'note'}</small></div>
       <div class="action-row"><button class="mini-btn" type="button" data-move-up="${i}">↑</button><button class="mini-btn" type="button" data-move-down="${i}">↓</button><button class="mini-btn reject" type="button" data-remove-custom="${i}">×</button></div>
     </div>
     <div class="custom-editor-grid">
@@ -304,7 +251,7 @@ async function refreshMembership(){
   const btn=$('#membershipRefreshBtn');
   if(btn){btn.disabled=true;btn.classList.add('loading')}
   try{
-    const user=await getBuilderUser();
+    const user=await getUser();
     loggedIn=!!user;
     if(!user){persist();location.href='auth.html?next='+encodeURIComponent(location.pathname.split('/').pop()+location.search);return}
     accountSubscription=await getActiveSubscription(user);
@@ -367,7 +314,7 @@ async function startTrial(){
 
 async function saveDraft(){
   persist();
-  const user=await getBuilderUser();
+  const user=await getUser();
   if(!user){location.href='auth.html?next='+encodeURIComponent(`builder.html${selectedPlan?'?plan='+selectedPlan:''}`);return}
   const p=await getProfile(user);
   if(p?.role==='admin'){alert(getLang()==='ar'?'استخدم حساب عميل لحفظ الدعوة.':'Use a customer account to save invitations.');return}
@@ -409,15 +356,14 @@ async function goCheckout(){
 }
 
 async function boot(){
-  const bootUser=await getBuilderUser();loggedIn=!!bootUser;if(bootUser){try{accountSubscription=await getActiveSubscription(bootUser)}catch{accountSubscription=null}}
-  const local=await currentDraft();if(local&&!editId&&!query.get('t')&&!query.get('new'))state=normalizeDraftShape(local,state.template_slug);else state=normalizeDraftShape(state,state.template_slug);
-  try{saveLocalDraft(serializable())}catch{}
+  const bootUser=await getUser();loggedIn=!!bootUser;if(bootUser){try{accountSubscription=await getActiveSubscription(bootUser)}catch{accountSubscription=null}}
+  const local=await currentDraft();if(local&&!editId&&!query.get('t')&&!query.get('new'))Object.assign(state,local);
   try{const dbt=await loadTemplates();if(dbt?.length)templates=activeSorted(mergeBySlug(fallbackTemplates,dbt))}catch{}
-  if(editId){const user=await getBuilderUser();if(!user){location.href='auth.html?next='+encodeURIComponent(location.pathname.split('/').pop()+location.search);return}const sb=await getSupabase();if(sb){const {data,error}=await sb.from('invitations').select('*').eq('id',editId).maybeSingle();if(error)throw error;if(data)state=normalizeDraftShape({...state,...data},data.template_slug||state.template_slug)}else{const demo=getDemoInvitationById(editId);if(demo)state=normalizeDraftShape({...state,...demo},demo.template_slug||state.template_slug)}}
+  if(editId){const user=await getUser();if(!user){location.href='auth.html?next='+encodeURIComponent(location.pathname.split('/').pop()+location.search);return}const sb=await getSupabase();if(sb){const {data,error}=await sb.from('invitations').select('*').eq('id',editId).maybeSingle();if(error)throw error;if(data)Object.assign(state,data)}else{const demo=getDemoInvitationById(editId);if(demo)Object.assign(state,demo)}}
   const qTemplate=query.get('t');if(qTemplate)state.template_slug=qTemplate;
   if(isTemplatePreviewAsset(state.hero_image_url))state.hero_image_url='';
   state.features_config=normalizeFeatures(state.features_config);
-  renderTemplates();renderFeatures();renderStoryStyles();renderCustomEditor();fill();refreshPublishUI();
+  renderTemplates();renderFeatures();renderStoryStyles();renderCustomEditor();fill();bind();refreshPublishUI();
   // If the admin approves payment while this page is still open, the builder
   // notices automatically instead of forcing the customer to log out/in.
   if(loggedIn&&!accountSubscription){
@@ -426,5 +372,4 @@ async function boot(){
 }
 window.addEventListener('focus',()=>{if(loggedIn&&!accountSubscription)refreshMembership().catch(()=>{})});
 window.addEventListener('wedora:language',()=>{renderFeatures();renderStoryStyles();renderTemplates();renderCustomEditor();render();refreshPublishUI()});
-bind();
-boot().catch(e=>{console.error('Builder boot failed',e);status(getLang()==='ar'?'حصل خطأ في تحميل بعض البيانات، لكن الأزرار شغالة — جرّب الإجراء تاني.':'Some builder data failed to load, but actions are still available. Try again.',{error:true,sticky:true})});
+boot().catch(e=>alert(e.message));

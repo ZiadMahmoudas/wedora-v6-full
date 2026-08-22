@@ -1,6 +1,7 @@
 import { fallbackTemplates } from "./data.js";
 import { loadTemplates } from "./supabase.js";
 import { getLang, t } from "./i18n.js";
+import { activeSorted,mergeBySlug } from "./utils.js";
 
 let items=fallbackTemplates,filter="all";
 
@@ -29,6 +30,6 @@ document.addEventListener("click",e=>{
 window.addEventListener("wedora:language",render);
 
 (async()=>{
- try{const db=await loadTemplates();if(db?.length)items=db}catch(e){console.warn(e)}
+ try{const db=await loadTemplates();if(db?.length)items=activeSorted(mergeBySlug(fallbackTemplates,db))}catch(e){console.warn(e)}
  render();
 })();

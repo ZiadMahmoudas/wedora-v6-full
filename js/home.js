@@ -1,6 +1,7 @@
 import { fallbackTemplates, fallbackPlans, featureLabels } from "./data.js";
 import { loadTemplates, loadPlans, loadSettings } from "./supabase.js";
 import { getLang, t } from "./i18n.js";
+import { activeSorted,mergeBySlug } from "./utils.js";
 
 let templates=fallbackTemplates,plans=fallbackPlans,settings=null;
 
@@ -40,7 +41,7 @@ function render(){
 async function boot(){
   try{
     const [dbTemplates,dbPlans,s]=await Promise.all([loadTemplates(),loadPlans(),loadSettings()]);
-    if(dbTemplates?.length) templates=dbTemplates;
+    if(dbTemplates?.length)templates=activeSorted(mergeBySlug(fallbackTemplates,dbTemplates));
     if(dbPlans?.length) plans=dbPlans;
     settings=s;
   }catch(err){console.warn(err)}

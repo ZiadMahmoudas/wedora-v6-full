@@ -1,5 +1,5 @@
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_PUBLISHABLE_OR_ANON_KEY";
+const SUPABASE_URL = "https://xzjpviejoqfxipxekzhk.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_0BJlNcsx23v89uBm1kwm_g_6AJSRHU9";
 
 export const CONFIG = {
   BRAND: "WEDORA",

@@ -2,17 +2,15 @@ import { CONFIG } from './config.js';
 import { getSupabase,getInvitationBySlug,uploadFile } from './supabase.js';
 import { fallbackExamples,fallbackTemplates } from './data.js';
 import { initI18n,getLang,t } from './i18n.js';
+import { $,escapeHtml,safeUrl,isTemplatePreviewAsset,formatDate,clamp,validateMediaFile } from './utils.js';
+import { normalizeFeatures } from './invitation-config.js';
 initI18n();
-
-const $=s=>document.querySelector(s);
 const q=new URLSearchParams(location.search);
-const slug=q.get('slug')||'ahmed-salma';
+const pathSlug=(()=>{const m=location.pathname.match(/\/w\/([^/?#]+)/);try{return m?decodeURIComponent(m[1]):''}catch{return m?.[1]||''}})();
+const slug=q.get('slug')||pathSlug||'ahmed-salma';
 let invite=null,recorder,chunks=[],recordTimer=null,recordTicker=null,memoryChannel=null,memoryPoll=null;
 let autoScrollRaf=null,autoScrollActive=false,autoScrollResumeTimer=null,gateOpened=false,autoScrollCompleted=false,autoScrollManuallyDisabled=false,autoScrollPosition=0;
 
-function escapeHtml(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-function safeUrl(v=''){try{const u=new URL(v,location.href);return ['http:','https:'].includes(u.protocol)?u.href:''}catch{return ''}}
-function isTemplatePreviewAsset(url=''){return /(?:^|\/)assets\/templates\//i.test(String(url))}
 function customSections(){return Array.isArray(invite?.features_config?.custom_sections)?invite.features_config.custom_sections.filter(x=>x&&x.enabled!==false):[]}
 
 function demoInvite(){
@@ -24,27 +22,50 @@ function demoInvite(){
     venue_name:ex.venue_ar,city:ex.city_ar,map_url:'https://maps.google.com',
     message:'نتشرف بمشاركتكم أجمل لحظاتنا، ويسعدنا وجودكم معنا في هذا اليوم.',
     hero_image_url:'',gallery_urls:[],song_url:'',theme_config:{accent:tmpl.accent},
-    features_config:{song:true,countdown:true,rsvp:true,wishes:true,guest_photos:true,audio_guestbook:true,auto_scroll:true,custom_sections:[
+    features_config:normalizeFeatures({custom_sections:[
       {id:'demo-1',type:'schedule',icon:'🕰',title_ar:'برنامج اليوم',title_en:'The schedule',body_ar:'٧:٠٠ م — استقبال الضيوف\n٨:٠٠ م — بداية الاحتفال',body_en:'7:00 PM — Guest arrival\n8:00 PM — Celebration begins',layout:'card',enabled:true},
       {id:'demo-2',type:'dress_code',icon:'✦',title_ar:'Dress Code',title_en:'Dress code',body_ar:'ألوان هادئة ورسمي بسيط',body_en:'Soft tones · smart formal',layout:'card',enabled:true}
-    ]}
+    ]})
   };
 }
 
 function applyTemplateVisuals(){
   const cls=`template-${invite.template_slug||'classic-ivory'}`;
-  $('#inviteMain').className=`invite-main ${cls}`;
+  const cfg=invite.features_config||{};
+  const coverStyle=cfg.story_cover_style||'photo-card';
+  const position=Number(cfg.story_cover_position??50);
+  const overlay=clamp(cfg.story_cover_overlay??20,0,70)/100;
+
+  $('#inviteMain').className=`invite-main ${cls} story-layout`;
   $('#gate').className=`invitation-gate ${cls}${gateOpened?' open':''}`;
   $('#inviteMain').style.setProperty('--accent',invite.theme_config?.accent||'#9b6f48');
 
   const customPhoto=invite.hero_image_url&&!isTemplatePreviewAsset(invite.hero_image_url)?invite.hero_image_url:'';
-  const heroArt=$('#inviteHeroArt'),gateArt=$('#gateArt');
-  [heroArt,gateArt].forEach(el=>{
-    el.classList.toggle('has-user-photo',!!customPhoto);
-    el.style.backgroundImage=customPhoto?`linear-gradient(180deg,rgba(10,7,9,.08),rgba(10,7,9,.32)),url("${customPhoto}")`:'';
-  });
-}
+  const hero=$('#inviteHero');
+  const frame=$('#storyCoverFrame');
+  hero.className=`invite-cover story-cover cover-${coverStyle} ${customPhoto?'has-photo':'no-photo'}`;
+  frame.style.setProperty('--story-photo-position',`${position}%`);
+  frame.style.setProperty('--story-overlay',overlay);
 
+  const heroArt=$('#inviteHeroArt'),gateArt=$('#gateArt');
+  heroArt.classList.toggle('has-user-photo',!!customPhoto);
+  if(customPhoto){
+    heroArt.style.setProperty('background-image',`linear-gradient(180deg,rgba(10,7,9,${Math.max(.03,overlay*.35)}),rgba(10,7,9,${Math.min(.7,overlay+.18)})),url("${customPhoto}")`,'important');
+    heroArt.style.setProperty('background-position',`center ${position}%`,'important');
+  }else{
+    heroArt.style.removeProperty('background-image');
+    heroArt.style.removeProperty('background-position');
+  }
+
+  gateArt.classList.toggle('has-user-photo',!!customPhoto);
+  if(customPhoto){
+    gateArt.style.setProperty('background-image',`linear-gradient(180deg,rgba(10,7,9,.22),rgba(10,7,9,.52)),url("${customPhoto}")`,'important');
+    gateArt.style.setProperty('background-position',`center ${position}%`,'important');
+  }else{
+    gateArt.style.removeProperty('background-image');
+    gateArt.style.removeProperty('background-position');
+  }
+}
 function renderCustomSections(){
   const rows=customSections();
   const host=$('#customSectionsHost'),section=$('#customSectionsSection');
@@ -71,7 +92,7 @@ function render(){
   const names=`${invite.partner1_name} & ${invite.partner2_name}`;
   document.title=`${names} — WEDORA`;
   document.querySelectorAll('[data-names]').forEach(x=>x.textContent=names);
-  document.querySelectorAll('[data-date]').forEach(x=>x.textContent=new Date(invite.event_date).toLocaleString(getLang()==='ar'?'ar-EG':'en-GB',{dateStyle:'long',timeStyle:'short'}));
+  document.querySelectorAll('[data-date]').forEach(x=>x.textContent=formatDate(invite.event_date,getLang()));
   $('[data-message]').textContent=invite.message||'';
   $('[data-venue]').textContent=invite.venue_name||'';
   $('[data-city]').textContent=invite.city||'';
@@ -109,7 +130,7 @@ function setAutoScrollUi(mode){
   text.textContent=mode==='active'?'AUTO ↓':mode==='paused'?(getLang()==='ar'?'متوقف مؤقتًا':'PAUSED'):(getLang()==='ar'?'تشغيل النزول':'AUTO ↓');
 }
 function clearResumeTimer(){if(autoScrollResumeTimer){clearTimeout(autoScrollResumeTimer);autoScrollResumeTimer=null}}
-function stopAutoScroll({resume=false,delay=3000}={}){
+function stopAutoScroll({resume=false,delay=2200}={}){
   autoScrollActive=false;
   if(autoScrollRaf){cancelAnimationFrame(autoScrollRaf);autoScrollRaf=null}
   clearResumeTimer();
@@ -131,8 +152,8 @@ function startGentleAutoScroll(){
   setAutoScrollUi('active');
 
   let last=performance.now();
-  const configured=Number(invite?.features_config?.auto_scroll_speed||48);
-  const speed=Math.min(Math.max(configured,20),120);
+  const configured=Number(invite?.features_config?.auto_scroll_speed||38);
+  const speed=Math.min(Math.max(configured,16),90);
 
   const frame=now=>{
     if(!autoScrollActive)return;
@@ -166,7 +187,7 @@ function userInterrupted(delay=1800){
 ['wheel','touchstart','touchmove','pointerdown','keydown'].forEach(evt=>addEventListener(evt,e=>{
   if(e.target?.closest?.('#autoScrollState'))return;
   const interactive=e.target?.closest?.('input,textarea,select,button,a,audio,label');
-  userInterrupted(interactive?4800:1800);
+  userInterrupted(interactive?5200:2200);
 },{passive:true}));
 addEventListener('focusin',e=>{
   if(e.target.matches?.('input,textarea,select,[contenteditable="true"]')){
@@ -187,7 +208,7 @@ $('#autoScrollState').onclick=e=>{
 $('#gateOpen').onclick=async()=>{
   gateOpened=true;document.body.classList.add('invite-opened');$('#gate').classList.add('open');
   try{if($('#inviteAudio').src)await $('#inviteAudio').play()}catch{}
-  setTimeout(startGentleAutoScroll,650);
+  setTimeout(startGentleAutoScroll,900);
 };
 $('#musicBtn').onclick=async()=>{const a=$('#inviteAudio');if(a.paused)await a.play();else a.pause()};
 
@@ -222,6 +243,7 @@ $('#wishForm').onsubmit=async e=>{
 
 $('#guestPhoto').onchange=async e=>{
   const f=e.target.files?.[0];if(!f)return;userInterrupted(6500);
+  try{validateMediaFile(f,{kind:'image',maxMB:8})}catch(err){e.target.value='';$('#photoMsg').textContent=err.message||err;return}
   const name=$('#photoGuestName').value.trim()||(getLang()==='ar'?'ضيف':'Guest');
   try{
     const sb=await getSupabase();if(!sb){$('#photoMsg').textContent='Demo upload ✓';return}
@@ -281,7 +303,7 @@ async function boot(){
     invite=await getInvitationBySlug(slug);
     if(!invite&&CONFIG.DEMO_MODE)invite=demoInvite();
     if(!invite){document.body.innerHTML=`<div style="text-align:center;padding:20vh 20px;font-family:system-ui"><h1>${getLang()==='ar'?'الدعوة غير متاحة':'Invitation unavailable'}</h1><p>${getLang()==='ar'?'قد تكون ما زالت قيد مراجعة الدفع أو انتهت مدتها.':'It may still be pending payment review or has expired.'}</p></div>`;return}
-    invite.features_config={auto_scroll:true,custom_sections:[],...(invite.features_config||{})};
+    invite.features_config=normalizeFeatures(invite.features_config);
     render();subscribeMemories();
   }catch(e){console.error(e)}
 }

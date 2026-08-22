@@ -4,13 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Builder — WEDORA</title>
-  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/app.css?v=20260822.2">
+  <link rel="stylesheet" href="css/templates.css?v=20260822.2"><link rel="stylesheet" href="css/story-studio.css?v=20260822.2">
 </head>
 <body class="builder-body">
 <div class="builder-shell">
   <header class="builder-top">
     <a class="logo" href="index.html">WED<em>O</em>RA</a>
-    <span class="builder-status" id="saveStatus"></span>
+    <div class="builder-head-status"><span class="builder-status" id="saveStatus"></span><span class="account-plan-pill" id="accountPlanPill" hidden></span></div>
     <div class="action-row">
       <button class="mini-btn" data-lang-toggle>EN</button>
       <a class="mini-btn" href="templates.html">← <span data-lang-only="ar">القوالب</span><span data-lang-only="en">Templates</span></a>
@@ -21,8 +22,14 @@
   <div class="builder-work">
     <aside class="builder-controls">
       <h2 data-i18n="builder_title"></h2>
+      <div class="builder-quick-steps" id="builderQuickSteps">
+        <button type="button" data-jump="detailsSection"><b>1</b><span data-lang-only="ar">البيانات</span><span data-lang-only="en">Details</span></button>
+        <button type="button" data-jump="designSection"><b>2</b><span data-lang-only="ar">الشكل</span><span data-lang-only="en">Design</span></button>
+        <button type="button" data-jump="extrasSection"><b>3</b><span data-lang-only="ar">الإضافات</span><span data-lang-only="en">Extras</span></button>
+        <button type="button" data-jump="publishSection"><b>4</b><span data-lang-only="ar">النشر</span><span data-lang-only="en">Publish</span></button>
+      </div>
 
-      <section class="builder-section">
+      <section class="builder-section" id="detailsSection">
         <h3 data-i18n="builder_details"></h3>
         <div class="form-grid">
           <div class="field"><label data-i18n="builder_name1"></label><input id="partner1"></div>
@@ -54,10 +61,47 @@
         </div>
       </section>
 
-      <section class="builder-section">
+      <section class="builder-section" id="designSection">
         <h3 data-i18n="builder_template"></h3>
         <div class="builder-template-row" id="builderTemplates"></div>
         <div class="field" style="margin-top:12px"><label data-i18n="builder_accent"></label><input id="accent" type="color" value="#9b6f48" style="height:42px;padding:4px"></div>
+      </section>
+
+
+      <section class="builder-section story-opening-builder">
+        <div class="story-opening-head">
+          <div>
+            <small class="studio-kicker">STORY OPENING</small>
+            <h3><span data-lang-only="ar">بداية الاستوري</span><span data-lang-only="en">Story opening</span></h3>
+            <p>
+              <span data-lang-only="ar">اختار شكل بداية الدعوة. الصورة اختيارية؛ لو مش عايز صورة اختار Blank وسيبها Typography نظيفة.</span>
+              <span data-lang-only="en">Choose how the invitation story begins. The photo is optional — pick Blank for a clean typography-only cover.</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="story-style-grid" id="storyStyleGrid"></div>
+
+        <div class="story-opening-controls">
+          <div class="field">
+            <label><span data-lang-only="ar">تموضع الصورة</span><span data-lang-only="en">Photo position</span></label>
+            <input id="heroPosition" type="range" min="0" max="100" step="1" value="50">
+            <small id="heroPositionValue">50%</small>
+          </div>
+          <div class="field">
+            <label><span data-lang-only="ar">كثافة التعتيم فوق الصورة</span><span data-lang-only="en">Photo overlay</span></label>
+            <input id="heroOverlay" type="range" min="0" max="70" step="5" value="20">
+            <small id="heroOverlayValue">20%</small>
+          </div>
+        </div>
+
+        <div class="story-cover-note">
+          <span>✦</span>
+          <div>
+            <b><span data-lang-only="ar">مش لازم صورة</span><span data-lang-only="en">Photo is optional</span></b>
+            <small><span data-lang-only="ar">لو سيبت الصورة فاضية، الاستوري هتستخدم خلفية أصلية متناسقة مع الستايل.</span><span data-lang-only="en">Without a photo, the story uses an original styled background automatically.</span></small>
+          </div>
+        </div>
       </section>
 
       <section class="builder-section">
@@ -72,7 +116,7 @@
         <div class="field"><label data-i18n="builder_song"></label><label class="upload-zone"><span>MP3 / M4A</span><input id="songFile" type="file" accept="audio/*" hidden></label><small id="songName"></small></div>
       </section>
 
-      <section class="builder-section">
+      <section class="builder-section" id="extrasSection">
         <h3 data-i18n="builder_features"></h3>
         <div id="featureToggles" class="admin-list"></div>
       </section>
@@ -100,11 +144,15 @@
         <div class="custom-section-editor-list" id="customSectionsEditor"></div>
       </section>
 
-      <div class="action-row" style="padding-top:15px">
-        <button class="btn btn-outline" id="saveDraft" data-i18n="builder_save"></button>
-        <button class="btn btn-outline" id="trialBtn"><span data-lang-only="ar">جرّب 24 ساعة</span><span data-lang-only="en">Try 24 hours</span></button>
-        <button class="btn btn-wine" id="checkoutBtn" data-i18n="builder_checkout"></button>
-      </div>
+      <section class="builder-publish-section" id="publishSection">
+        <div class="account-plan-notice" id="accountPlanNotice" hidden></div>
+        <button class="membership-refresh" type="button" id="membershipRefreshBtn">↻ <span data-lang-only="ar">تحديث حالة اشتراكي</span><span data-lang-only="en">Refresh my membership</span></button>
+        <div class="action-row builder-final-actions">
+          <button class="btn btn-outline" id="saveDraft" data-i18n="builder_save"></button>
+          <button class="btn btn-outline" id="trialBtn"><span data-lang-only="ar">جرّب 24 ساعة</span><span data-lang-only="en">Try 24 hours</span></button>
+          <button class="btn btn-wine" id="checkoutBtn" data-i18n="builder_checkout"></button>
+        </div>
+      </section>
     </aside>
 
     <main class="builder-preview">
@@ -117,6 +165,13 @@
           </div>
         </div>
 
+        <div class="preview-story-note">
+          <span>↓</span>
+          <div>
+            <b><span data-lang-only="ar">دي بداية Story كاملة</span><span data-lang-only="en">This is a full scrolling story</span></b>
+            <small><span data-lang-only="ar">بعد الغلاف: كلام الدعوة، العد التنازلي، المكان، RSVP، رسائل الضيوف وباقي الأقسام.</span><span data-lang-only="en">After the cover: invitation copy, countdown, location, RSVP, guest notes and more.</span></small>
+          </div>
+        </div>
         <div class="builder-phone" id="builderDevice">
           <div class="builder-phone-inner">
             <article class="preview-invite" id="previewInvite">
@@ -159,6 +214,6 @@
     </main>
   </div>
 </div>
-<script type="module" src="js/builder.js"></script>
+<script type="module" src="js/builder.js?v=20260822.2"></script>
 </body>
 </html>

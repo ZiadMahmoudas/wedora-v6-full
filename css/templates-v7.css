@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Italiana&family=Marcellus&display=swap');
+
+/* =========================================================
+   WEDORA V7 — Premium live template system
+   Clean CSS artwork. No sample names baked into live covers.
+   ========================================================= */
+
+:root{
+  --v7-serif:"Cormorant Garamond","Amiri","Noto Naskh Arabic",Georgia,serif;
+  --v7-display:"Italiana","Cormorant Garamond","Amiri",Georgia,serif;
+  --v7-arabic:"Amiri","Noto Naskh Arabic","Noto Kufi Arabic",serif;
+}
+
+/* -------------------- builder polish -------------------- */
+.builder-body{background:#f4f1ed}
+.builder-top{height:74px;padding-inline:22px;background:rgba(255,255,255,.94);backdrop-filter:blur(20px);box-shadow:0 1px 0 rgba(42,29,33,.08)}
+.builder-shell{grid-template-rows:74px 1fr}
+.builder-work{grid-template-columns:430px minmax(0,1fr)}
+.builder-controls{padding:20px 20px 34px;background:#fbfaf8}
+.builder-controls>h2{font-family:var(--v7-arabic);font-size:24px;font-weight:400;margin:2px 0 18px}
+.builder-section{border:1px solid rgba(47,32,35,.08);border-radius:20px;padding:17px;margin:0 0 12px;background:#fff;box-shadow:0 8px 24px rgba(34,23,27,.025)}
+.builder-section h3{font-size:11px;letter-spacing:.03em;margin-bottom:14px}
+.builder-section .field input,.builder-section .field textarea,.builder-section .field select{background:#fcfbfa;border-color:#e8dfda}
+.builder-preview{background:
+  radial-gradient(circle at 18% 20%,rgba(126,76,91,.075),transparent 23%),
+  radial-gradient(circle at 82% 80%,rgba(182,145,98,.08),transparent 26%),
+  #ebe7e2;
+  padding:24px}
+.builder-preview-stage{gap:15px}
+.builder-device-toolbar{background:rgba(255,255,255,.86);box-shadow:0 15px 45px rgba(46,30,37,.07);border-radius:18px;padding:10px 13px}
+.builder-phone{width:min(390px,84vw);height:min(790px,calc(100svh - 126px));border-radius:48px;padding:9px;background:linear-gradient(145deg,#1c1b1b,#080808);box-shadow:0 40px 110px rgba(35,23,30,.26),inset 0 0 0 1px rgba(255,255,255,.08)}
+.builder-phone::before{content:"";position:absolute;width:86px;height:5px;border-radius:99px;background:#262626;left:50%;top:7px;transform:translateX(-50%);z-index:4}
+.builder-phone{position:relative}
+.builder-phone-inner{border-radius:39px;background:#fff}
+.builder-phone.is-tablet{width:min(840px,95%);height:min(720px,calc(100svh - 150px));border-radius:32px;padding:10px}
+.builder-phone.is-tablet::before{width:6px;height:6px;top:50%;left:8px;transform:translateY(-50%)}
+.builder-phone.is-tablet .builder-phone-inner{border-radius:23px}
+
+/* template picker is intentionally larger — choosing a visual direction matters */
+.builder-template-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.builder-template-option{position:relative;aspect-ratio:.78;border:1px solid rgba(43,28,32,.10)!important;border-radius:16px!important;overflow:hidden;background:#eee!important;padding:0!important;box-shadow:0 8px 24px rgba(28,18,22,.05);transition:.25s ease}
+.builder-template-option::after{content:attr(data-label);position:absolute;inset:auto 9px 9px;padding:8px 9px;border-radius:10px;background:rgba(15,12,13,.64);backdrop-filter:blur(10px);color:#fff;font-size:8px;line-height:1.25;text-align:start;opacity:0;transform:translateY(5px);transition:.22s ease}
+.builder-template-option:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(28,18,22,.10)}
+.builder-template-option:hover::after,.builder-template-option.active::after{opacity:1;transform:none}
+.builder-template-option.active{border-color:#8b294d!important;box-shadow:0 0 0 2px rgba(139,41,77,.14),0 16px 34px rgba(28,18,22,.10)}
+.builder-template-option img{transition:.35s ease}
+.builder-template-option:hover img{transform:scale(1.025)}
+
+/* -------------------- full-cover live composition -------------------- */
+.preview-cover-v2,.invite-cover{position:relative!important;display:block!important;overflow:hidden!important;isolation:isolate;background:var(--ibg,var(--invite-bg,#f5efe7))!important}
+.preview-cover-v2{min-height:620px!important}
+.invite-cover{min-height:100svh!important}
+.preview-cover-art,.invite-cover-art{position:absolute!important;inset:0!important;min-height:0!important;background-size:cover!important;background-position:center!important;overflow:hidden}
+.preview-cover-meta,.invite-cover-meta{position:relative!important;z-index:7!important;inset:0!important;min-height:inherit!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;padding:74px 26px 58px!important;border:0!important;background:transparent!important}
+.preview-cover-meta h2,.invite-cover-meta h1{font-family:var(--v7-serif)!important;font-weight:500!important;letter-spacing:-.035em!important;text-wrap:balance!important;margin:14px auto!important;max-width:86%!important}
+html[dir="rtl"] .preview-cover-meta h2,html[dir="rtl"] .invite-cover-meta h1{font-family:var(--v7-arabic)!important;letter-spacing:-.025em!important;line-height:1.18!important}
+.preview-cover-meta h2{font-size:50px!important;line-height:1.02!important}
+.invite-cover-meta h1{font-size:clamp(62px,10vw,118px)!important;line-height:.96!important}
+.preview-cover-meta small,.invite-cover-meta small{font-family:"Marcellus","Noto Kufi Arabic",sans-serif;font-size:8px!important;letter-spacing:.22em!important;text-transform:uppercase;opacity:.72!important}
+
+/* uploaded photo becomes the background, but keeps template framing */
+.preview-cover-art.has-user-photo,.invite-cover-art.has-user-photo{filter:none!important}
+.preview-cover-art.has-user-photo::before,.preview-cover-art.has-user-photo::after,.invite-cover-art.has-user-photo::before,.invite-cover-art.has-user-photo::after{display:block!important}
+.preview-cover-art.has-user-photo + .preview-cover-meta,.invite-cover-art.has-user-photo + .invite-cover-meta{color:#fff!important;text-shadow:0 2px 28px rgba(0,0,0,.45)!important}
+.preview-cover-art.has-user-photo + .preview-cover-meta::after,.invite-cover-art.has-user-photo + .invite-cover-meta::after{content:"";position:absolute;z-index:-2;inset:0;background:linear-gradient(180deg,rgba(7,6,7,.10),rgba(7,6,7,.26) 45%,rgba(7,6,7,.52))}
+
+/* Public page sections inherit a quieter editorial system */
+.invite-section{padding:88px 22px!important}
+.invite-section h2{font-family:var(--v7-serif)!important;font-weight:500!important;letter-spacing:-.025em!important}
+html[dir="rtl"] .invite-section h2{font-family:var(--v7-arabic)!important;letter-spacing:-.015em!important}
+.invite-section-inner{max-width:780px!important}
+.inv-countdown{gap:10px!important;max-width:620px!important}.inv-countdown div{background:color-mix(in srgb,var(--ibg) 88%,white 12%);border-color:color-mix(in srgb,var(--ifg) 12%,transparent)!important;border-radius:18px!important}
+.inv-countdown b{font-family:var(--v7-serif);font-weight:500}
+.rsvp-box,.wish-box,.upload-box-public,.audio-box{border-radius:26px!important;box-shadow:0 18px 60px rgba(30,20,25,.04)}
+
+/* =========================================================
+   01 — IVORY ATELIER
+   Quiet couture stationery, warm ivory, fine double rule.
+   ========================================================= */
+.template-classic-ivory{--ibg:#f4eee5;--ifg:#302821;--accent:#9c7751;--invite-bg:#f4eee5;--invite-fg:#302821}
+.preview-invite.template-classic-ivory .preview-cover-art,
+.template-classic-ivory .invite-cover-art,
+.invitation-gate.template-classic-ivory .gate-art{
+  background:
+    radial-gradient(circle at 50% 44%,rgba(255,255,255,.78) 0 15%,transparent 31%),
+    repeating-linear-gradient(0deg,rgba(74,55,36,.012) 0 1px,transparent 1px 4px),
+    linear-gradient(145deg,#f7f2eb,#eadfce)!important;
+}
+.preview-invite.template-classic-ivory .preview-cover-v2::before,.template-classic-ivory .invite-cover::before{content:"";position:absolute;z-index:3;inset:7%;border:1px solid rgba(126,91,55,.38);box-shadow:inset 0 0 0 8px transparent,inset 0 0 0 9px rgba(126,91,55,.13);pointer-events:none}
+.preview-invite.template-classic-ivory .preview-cover-v2::after,.template-classic-ivory .invite-cover::after{content:"W";position:absolute;z-index:4;top:12%;left:50%;transform:translateX(-50%);width:42px;height:42px;border:1px solid rgba(126,91,55,.34);border-radius:50%;display:grid;place-items:center;font-family:var(--v7-display);font-size:18px;color:#87633e;background:#f4eee5}
+.preview-invite.template-classic-ivory .preview-cover-meta,.template-classic-ivory .invite-cover-meta{color:#302821}
+.preview-invite.template-classic-ivory .preview-cover-meta::before,.template-classic-ivory .invite-cover-meta::before{content:"";width:62px;height:1px;background:#a47e56;margin:14px 0 2px;opacity:.55}
+
+/* =========================================================
+   02 — BORDEAUX EDITORIAL
+   Magazine-like asymmetry, wine block, bone paper.
+   ========================================================= */
+.template-editorial-noir{--ibg:#f2eee7;--ifg:#171415;--accent:#7d203f;--invite-bg:#f2eee7;--invite-fg:#171415}
+.preview-invite.template-editorial-noir .preview-cover-art,.template-editorial-noir .invite-cover-art,.invitation-gate.template-editorial-noir .gate-art{
+  background:
+    linear-gradient(180deg,#7c203e 0 31%,transparent 31%),
+    linear-gradient(90deg,transparent 0 9%,rgba(21,18,18,.08) 9% 9.2%,transparent 9.2% 91%,rgba(21,18,18,.08) 91% 91.2%,transparent 91.2%),
+    #f2eee7!important;
+}
+.preview-invite.template-editorial-noir .preview-cover-v2::before,.template-editorial-noir .invite-cover::before{content:"WEDORA / 07";position:absolute;z-index:4;top:12%;left:50%;transform:translateX(-50%);color:#fff;font:8px/1 "Marcellus",sans-serif;letter-spacing:.36em}
+.preview-invite.template-editorial-noir .preview-cover-v2::after,.template-editorial-noir .invite-cover::after{content:"";position:absolute;z-index:3;left:11%;right:11%;top:42%;height:1px;background:rgba(32,27,26,.34);box-shadow:0 250px 0 rgba(32,27,26,.22)}
+.preview-invite.template-editorial-noir .preview-cover-meta,.template-editorial-noir .invite-cover-meta{justify-content:flex-start!important;align-items:flex-start!important;text-align:start!important;padding-top:42%!important;padding-inline:12%!important;color:#181516}
+.preview-invite.template-editorial-noir .preview-cover-meta h2,.template-editorial-noir .invite-cover-meta h1{text-transform:uppercase;max-width:72%!important;margin-inline:0!important;text-align:start!important;font-family:"Cormorant Garamond",var(--v7-arabic),serif!important;font-weight:600!important;letter-spacing:-.02em!important}
+.preview-invite.template-editorial-noir .preview-cover-meta small,.template-editorial-noir .invite-cover-meta small{color:#5c5350}
+
+/* =========================================================
+   03 — SAGE BOTANICA
+   Letterpress garden, olive ink, organic arcs.
+   ========================================================= */
+.template-botanical-sage{--ibg:#e9eddf;--ifg:#304030;--accent:#7b653e;--invite-bg:#e9eddf;--invite-fg:#304030}
+.preview-invite.template-botanical-sage .preview-cover-art,.template-botanical-sage .invite-cover-art,.invitation-gate.template-botanical-sage .gate-art{
+  background:
+    radial-gradient(ellipse at 5% 18%,rgba(65,93,61,.17) 0 6%,transparent 6.5%),
+    radial-gradient(ellipse at 14% 8%,rgba(65,93,61,.12) 0 4%,transparent 4.5%),
+    radial-gradient(ellipse at 92% 80%,rgba(65,93,61,.15) 0 7%,transparent 7.5%),
+    radial-gradient(circle at 50% 50%,rgba(255,255,255,.40),transparent 31%),
+    linear-gradient(145deg,#eef2e7,#dce5d1)!important;
+}
+.preview-invite.template-botanical-sage .preview-cover-v2::before,.template-botanical-sage .invite-cover::before{content:"";position:absolute;z-index:3;width:58%;aspect-ratio:1;border:1px solid rgba(58,82,56,.28);border-radius:50%;left:50%;top:48%;transform:translate(-50%,-50%);box-shadow:0 0 0 16px rgba(58,82,56,.0),0 0 0 17px rgba(58,82,56,.12),0 0 0 34px transparent,0 0 0 35px rgba(58,82,56,.08)}
+.preview-invite.template-botanical-sage .preview-cover-v2::after,.template-botanical-sage .invite-cover::after{content:"BOTANICA · WEDORA";position:absolute;z-index:4;bottom:10%;left:50%;transform:translateX(-50%);font:7px "Marcellus",sans-serif;letter-spacing:.28em;color:#587056;white-space:nowrap}
+.preview-invite.template-botanical-sage .preview-cover-meta,.template-botanical-sage .invite-cover-meta{color:#304030}
+
+/* =========================================================
+   04 — MIDNIGHT CONSTELLATION
+   Deep navy, orbital moon, tiny stars.
+   ========================================================= */
+.template-moonlight-navy{--ibg:#0c1727;--ifg:#f2eee4;--accent:#c7c1ae;--invite-bg:#0c1727;--invite-fg:#f2eee4;color:#f2eee4}
+.preview-invite.template-moonlight-navy .preview-cover-art,.template-moonlight-navy .invite-cover-art,.invitation-gate.template-moonlight-navy .gate-art{
+  background:
+    radial-gradient(circle at 13% 16%,#dadbd4 0 1px,transparent 1.8px),radial-gradient(circle at 78% 10%,#dadbd4 0 1.5px,transparent 2.2px),radial-gradient(circle at 86% 35%,#dadbd4 0 1px,transparent 1.8px),radial-gradient(circle at 17% 68%,#dadbd4 0 1px,transparent 1.8px),radial-gradient(circle at 76% 75%,#dadbd4 0 1.5px,transparent 2.2px),radial-gradient(circle at 49% 17%,rgba(225,222,209,.14),transparent 25%),
+    linear-gradient(180deg,#14243b,#09111f)!important;
+}
+.preview-invite.template-moonlight-navy .preview-cover-v2::before,.template-moonlight-navy .invite-cover::before{content:"";position:absolute;z-index:3;width:62%;aspect-ratio:1;border-radius:50%;left:50%;top:22%;transform:translate(-50%,-50%);border:1px solid rgba(220,220,208,.35);box-shadow:inset 0 0 0 13px #14243b,inset 0 0 0 19px rgba(222,219,204,.9),inset 0 0 0 26px #14243b,0 0 0 46px rgba(220,220,208,.12)}
+.preview-invite.template-moonlight-navy .preview-cover-v2::after,.template-moonlight-navy .invite-cover::after{content:"✦  ✧  ✦";position:absolute;z-index:4;bottom:10%;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:.8em;color:#d9d7cf;opacity:.7;white-space:nowrap}
+.preview-invite.template-moonlight-navy .preview-cover-meta,.template-moonlight-navy .invite-cover-meta{color:#eeeade;padding-top:24%!important}
+.preview-invite.template-moonlight-navy .preview-cover-meta h2,.template-moonlight-navy .invite-cover-meta h1{text-shadow:0 10px 55px rgba(0,0,0,.18)}
+.template-moonlight-navy .invite-section>p,.template-moonlight-navy .invite-section-inner>p,.template-moonlight-navy .inv-countdown span{color:rgba(255,255,255,.62)}
+.template-moonlight-navy .invite-section.alt{background:rgba(255,255,255,.045)}
+
+/* =========================================================
+   05 — ROYAL ARABESQUE
+   Burgundy velvet, geometric arch, antique gold.
+   ========================================================= */
+.template-royal-arabesque{--ibg:#500716;--ifg:#f7ead1;--accent:#d0a255;--invite-bg:#500716;--invite-fg:#f7ead1;color:#f7ead1}
+.preview-invite.template-royal-arabesque .preview-cover-art,.template-royal-arabesque .invite-cover-art,.invitation-gate.template-royal-arabesque .gate-art{
+  background:
+    radial-gradient(circle at 50% 38%,rgba(208,162,85,.13),transparent 24%),
+    repeating-radial-gradient(circle at 0 100%,rgba(208,162,85,.055) 0 1.5px,transparent 2.5px 33px),
+    linear-gradient(145deg,#741028,#32040d)!important;
+}
+.preview-invite.template-royal-arabesque .preview-cover-v2::before,.template-royal-arabesque .invite-cover::before{content:"";position:absolute;z-index:3;inset:6.5%;border:1px solid rgba(216,176,102,.58);border-radius:170px 170px 12px 12px;box-shadow:inset 0 0 0 7px rgba(80,7,22,.88),inset 0 0 0 8px rgba(216,176,102,.22)}
+.preview-invite.template-royal-arabesque .preview-cover-v2::after,.template-royal-arabesque .invite-cover::after{content:"◆";position:absolute;z-index:4;top:11%;left:50%;transform:translateX(-50%);font-size:10px;color:#d9ad62;box-shadow:0 455px 0 #d9ad62}
+.preview-invite.template-royal-arabesque .preview-cover-meta,.template-royal-arabesque .invite-cover-meta{color:#f6e8cd}
+.preview-invite.template-royal-arabesque .preview-cover-meta small,.template-royal-arabesque .invite-cover-meta small{color:#d9b46e}
+.template-royal-arabesque .invite-section>p,.template-royal-arabesque .invite-section-inner>p,.template-royal-arabesque .inv-countdown span{color:rgba(255,241,214,.66)}
+.template-royal-arabesque .invite-section.alt{background:rgba(255,255,255,.05)}
+
+/* =========================================================
+   06 — PEARL BLUSH
+   Pale blush, pearl axis, transparent halo.
+   ========================================================= */
+.template-minimal-blush{--ibg:#f3e5e2;--ifg:#30262c;--accent:#a56b77;--invite-bg:#f3e5e2;--invite-fg:#30262c}
+.preview-invite.template-minimal-blush .preview-cover-art,.template-minimal-blush .invite-cover-art,.invitation-gate.template-minimal-blush .gate-art{background:radial-gradient(circle at 50% 48%,rgba(255,255,255,.52),transparent 27%),linear-gradient(180deg,#f6e9e6,#eddad7)!important}
+.preview-invite.template-minimal-blush .preview-cover-v2::before,.template-minimal-blush .invite-cover::before{content:"";position:absolute;z-index:3;top:0;bottom:0;left:50%;width:1px;background:linear-gradient(transparent,rgba(165,107,119,.44) 16% 84%,transparent)}
+.preview-invite.template-minimal-blush .preview-cover-v2::after,.template-minimal-blush .invite-cover::after{content:"";position:absolute;z-index:4;width:18px;aspect-ratio:1;border-radius:50%;left:50%;top:7%;transform:translateX(-50%);border:1px solid rgba(165,107,119,.68);background:rgba(255,255,255,.16);box-shadow:0 500px 0 -5px #aa727d}
+.preview-invite.template-minimal-blush .preview-cover-meta::before,.template-minimal-blush .invite-cover-meta::before{content:"";position:absolute;z-index:-1;width:min(68%,390px);aspect-ratio:1;border-radius:50%;border:1px solid rgba(255,255,255,.84);box-shadow:0 0 0 1px rgba(165,107,119,.06),inset 0 0 80px rgba(255,255,255,.22)}
+.preview-invite.template-minimal-blush .preview-cover-meta,.template-minimal-blush .invite-cover-meta{color:#30262c}
+.preview-invite.template-minimal-blush .preview-cover-meta small,.template-minimal-blush .invite-cover-meta small{color:#82636c}
+
+/* =========================================================
+   07 — DESERT PEARL
+   Warm sand, Saudi-inspired arch geometry, pearl gold.
+   ========================================================= */
+.template-desert-pearl{--ibg:#e9ddca;--ifg:#362c22;--accent:#9c7b4f;--invite-bg:#e9ddca;--invite-fg:#362c22}
+.preview-invite.template-desert-pearl .preview-cover-art,.template-desert-pearl .invite-cover-art,.invitation-gate.template-desert-pearl .gate-art{
+  background:
+    linear-gradient(45deg,transparent 48.5%,rgba(125,96,57,.045) 49% 51%,transparent 51.5%) 0 0/34px 34px,
+    linear-gradient(-45deg,transparent 48.5%,rgba(125,96,57,.035) 49% 51%,transparent 51.5%) 0 0/34px 34px,
+    radial-gradient(circle at 50% 45%,rgba(255,255,255,.48),transparent 28%),
+    linear-gradient(145deg,#f0e6d6,#deceb4)!important;
+}
+.preview-invite.template-desert-pearl .preview-cover-v2::before,.template-desert-pearl .invite-cover::before{content:"";position:absolute;z-index:3;left:13%;right:13%;top:9%;bottom:9%;border:1px solid rgba(126,94,53,.32);border-radius:190px 190px 0 0}
+.preview-invite.template-desert-pearl .preview-cover-v2::after,.template-desert-pearl .invite-cover::after{content:"WEDORA";position:absolute;z-index:4;top:13%;left:50%;transform:translateX(-50%);font:8px "Marcellus",sans-serif;letter-spacing:.42em;color:#8f7048}
+.preview-invite.template-desert-pearl .preview-cover-meta,.template-desert-pearl .invite-cover-meta{color:#362c22;padding-top:12%!important}
+.preview-invite.template-desert-pearl .preview-cover-meta h2,.template-desert-pearl .invite-cover-meta h1{font-family:var(--v7-display)!important}
+html[dir="rtl"] .preview-invite.template-desert-pearl .preview-cover-meta h2,html[dir="rtl"] .template-desert-pearl .invite-cover-meta h1{font-family:var(--v7-arabic)!important}
+
+/* =========================================================
+   08 — EMERALD MAJLIS
+   Deep emerald, scalloped arch, restrained gold.
+   ========================================================= */
+.template-emerald-majlis{--ibg:#0c352f;--ifg:#f0e6cf;--accent:#c4a569;--invite-bg:#0c352f;--invite-fg:#f0e6cf;color:#f0e6cf}
+.preview-invite.template-emerald-majlis .preview-cover-art,.template-emerald-majlis .invite-cover-art,.invitation-gate.template-emerald-majlis .gate-art{
+  background:
+    radial-gradient(circle at 50% 36%,rgba(196,165,105,.11),transparent 24%),
+    radial-gradient(circle at 10% 20%,rgba(255,255,255,.025) 0 2px,transparent 3px),
+    linear-gradient(160deg,#135148,#082a26)!important;
+}
+.preview-invite.template-emerald-majlis .preview-cover-v2::before,.template-emerald-majlis .invite-cover::before{content:"";position:absolute;z-index:3;left:10%;right:10%;top:8%;bottom:8%;border:1px solid rgba(201,173,111,.42);border-radius:52% 52% 4px 4px / 23% 23% 4px 4px;box-shadow:inset 0 0 0 7px rgba(12,53,47,.86),inset 0 0 0 8px rgba(201,173,111,.13)}
+.preview-invite.template-emerald-majlis .preview-cover-v2::after,.template-emerald-majlis .invite-cover::after{content:"✦";position:absolute;z-index:4;top:13%;left:50%;transform:translateX(-50%);color:#cfb477;font-size:12px;box-shadow:0 440px 0 #cfb477}
+.preview-invite.template-emerald-majlis .preview-cover-meta,.template-emerald-majlis .invite-cover-meta{color:#f0e6cf}
+.preview-invite.template-emerald-majlis .preview-cover-meta small,.template-emerald-majlis .invite-cover-meta small{color:#cfb477}
+.template-emerald-majlis .invite-section>p,.template-emerald-majlis .invite-section-inner>p,.template-emerald-majlis .inv-countdown span{color:rgba(240,230,207,.63)}
+.template-emerald-majlis .invite-section.alt{background:rgba(255,255,255,.045)}
+
+/* gate follows selected template without covering the card */
+.invitation-gate .gate-art{filter:saturate(.85) brightness(.72)}
+.invitation-gate .gate-card{background:rgba(17,13,15,.48);border:1px solid rgba(255,255,255,.18);box-shadow:0 35px 100px rgba(0,0,0,.22);backdrop-filter:blur(20px)}
+.invitation-gate.template-classic-ivory .gate-card,.invitation-gate.template-minimal-blush .gate-card,.invitation-gate.template-desert-pearl .gate-card,.invitation-gate.template-botanical-sage .gate-card{background:rgba(25,18,20,.56)}
+
+/* preview sections are calmer and more premium */
+.preview-section{padding:46px 24px!important}
+.preview-section h3{font-family:var(--v7-serif)!important;font-size:32px!important}
+html[dir="rtl"] .preview-section h3{font-family:var(--v7-arabic)!important}
+.preview-countdown div{border-radius:13px!important;background:rgba(255,255,255,.32)}
+.preview-custom-card{border-radius:16px!important;background:rgba(255,255,255,.38)!important}
+
+@media(max-width:760px){
+  .builder-work{grid-template-columns:1fr}.builder-controls{border-inline-end:0}.builder-preview{min-height:790px}
+  .builder-template-row{grid-template-columns:repeat(2,1fr)}
+  .preview-cover-v2{min-height:600px!important}
+  .invite-cover{min-height:100svh!important}
+  .preview-cover-meta,.invite-cover-meta{padding-inline:20px!important}
+  .preview-invite.template-editorial-noir .preview-cover-meta,.template-editorial-noir .invite-cover-meta{padding-top:48%!important}
+  .preview-invite.template-royal-arabesque .preview-cover-v2::after{box-shadow:0 400px 0 #d9ad62}
+  .preview-invite.template-emerald-majlis .preview-cover-v2::after{box-shadow:0 390px 0 #cfb477}
+}
+.builder-template-option::after{opacity:1;transform:none;background:linear-gradient(180deg,rgba(13,10,11,.02),rgba(13,10,11,.72));inset:auto 0 0;padding:26px 10px 9px;border-radius:0;font-size:8px}
+.builder-template-option.active::before{content:"✓";position:absolute;z-index:4;top:8px;inset-inline-end:8px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#7d203f;font-size:10px;font-weight:900;box-shadow:0 5px 16px rgba(0,0,0,.12)}

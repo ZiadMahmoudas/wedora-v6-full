@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Share Invitation — WEDORA</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="share-body">
+  <header class="app-topbar"><div class="app-topbar-inner"><a class="logo" href="index.html">WED<em>O</em>RA</a><div class="action-row"><button class="mini-btn" data-lang-toggle>EN</button><a class="mini-btn" href="dashboard.html">← <span data-lang-only="ar">لوحتي</span><span data-lang-only="en">Dashboard</span></a></div></div></header>
+
+  <main class="share-center-wrap">
+    <section class="share-hero-card">
+      <small>INVITATION LIVE</small>
+      <span class="share-live-dot">● LIVE</span>
+      <h1 id="shareNames">—</h1>
+      <p><span data-lang-only="ar">دعوتك منشورة. دلوقتي كل اللي عليك تختار طريقة المشاركة.</span><span data-lang-only="en">Your invitation is live. Pick how you want to share it.</span></p>
+      <div class="share-link-box"><input id="shareLink" readonly><button class="mini-btn primary" id="copyShare">⧉ <span data-lang-only="ar">نسخ</span><span data-lang-only="en">Copy</span></button></div>
+      <div class="share-actions-grid">
+        <button class="share-action-card" id="nativeShare"><b>⌁</b><span data-lang-only="ar">مشاركة</span><span data-lang-only="en">Share</span><small><span data-lang-only="ar">مشاركة الموبايل</span><span data-lang-only="en">Device share</span></small></button>
+        <a class="share-action-card whatsapp" id="whatsappShare" target="_blank" rel="noopener"><b>◉</b><span>WhatsApp</span><small><span data-lang-only="ar">ابعتها للضيوف</span><span data-lang-only="en">Send to guests</span></small></a>
+        <a class="share-action-card" id="openInvite" target="_blank" rel="noopener"><b>↗</b><span data-lang-only="ar">افتح الدعوة</span><span data-lang-only="en">Open invitation</span><small><span data-lang-only="ar">شوفها كضيف</span><span data-lang-only="en">Guest view</span></small></a>
+        <a class="share-action-card" id="editInvite"><b>✎</b><span data-lang-only="ar">تعديل</span><span data-lang-only="en">Edit</span><small><span data-lang-only="ar">ارجع للمحرر</span><span data-lang-only="en">Back to builder</span></small></a>
+      </div>
+    </section>
+
+    <aside class="share-qr-card">
+      <small>QR CODE</small>
+      <div class="qr-frame"><img id="qrImage" alt="Invitation QR"></div>
+      <h2><span data-lang-only="ar">مفيد للطباعة والترابيزات</span><span data-lang-only="en">Great for print and table cards</span></h2>
+      <p><span data-lang-only="ar">الـQR بيفتح نفس رابط الدعوة المنشورة.</span><span data-lang-only="en">The QR opens the same live invitation link.</span></p>
+      <button class="mini-btn" id="copyQrLink">⧉ <span data-lang-only="ar">نسخ رابط الدعوة</span><span data-lang-only="en">Copy invitation link</span></button>
+    </aside>
+  </main>
+
+  <div class="share-toast" id="shareToast" hidden></div>
+  <script type="module" src="js/share.js"></script>
+</body>
+</html>
