@@ -1,7 +1,7 @@
 import {
   loadTemplates,currentDraft,saveLocalDraft,getSupabase,getUser,getProfile,getActiveSubscription,uploadFile,
-  upsertDemoInvitation,getDemoInvitationById,updateDemoInvitation,listDemoInvitations
-} from './supabase.js';
+  upsertDemoInvitation,getDemoInvitationById,updateDemoInvitation,listDemoInvitations,getPublicInvitationUrl
+} from './supabase.js?v=20260822.6';
 import { fallbackTemplates,featureLabels } from './data.js';
 import { initI18n,getLang } from './i18n.js';
 import {
@@ -315,7 +315,7 @@ async function refreshMembership(){
 
 async function publishFromSubscription(){
   await saveDraft();if(!editId)return;
-  if(state.status==='active'&&!state.is_trial){location.href=`share.html?slug=${encodeURIComponent(state.slug)}`;return;}
+  if(state.status==='active'&&!state.is_trial){location.href=getPublicInvitationUrl(state.slug);return;}
 
   // Always re-check immediately before publishing. This removes the old problem
   // where an approved account stayed "unsubscribed" until a new browser session.
@@ -329,24 +329,35 @@ async function publishFromSubscription(){
   if(!sb){
     state.status='active';state.is_trial=false;state.is_lifetime=!!accountSubscription.is_lifetime;state.active_until=accountSubscription.current_period_end||null;
     updateDemoInvitation(editId,{...serializable(),status:'active',is_trial:false,is_lifetime:state.is_lifetime,active_until:state.active_until});
-    location.href=`share.html?slug=${encodeURIComponent(state.slug)}`;return;
+    location.href=getPublicInvitationUrl(state.slug);return;
   }
 
-  let res=await sb.rpc('publish_invitation_v9',{p_invitation_id:editId});
+  // V11 returns a JSON object instead of a RETURNS TABLE row. This avoids
+  // PostgreSQL output-column name collisions such as `status is ambiguous`.
+  let res=await sb.rpc('publish_invitation_v11',{p_invitation_id:editId});
+  if(res.error&&/could not find the function|schema cache|publish_invitation_v11/i.test(String(res.error.message||''))){
+    res=await sb.rpc('publish_invitation_v10',{p_invitation_id:editId});
+  }
+  if(res.error&&/could not find the function|schema cache|publish_invitation_v10/i.test(String(res.error.message||''))){
+    res=await sb.rpc('publish_invitation_v9',{p_invitation_id:editId});
+  }
   if(res.error&&/could not find the function|schema cache|publish_invitation_v9/i.test(String(res.error.message||''))){
-    // Compatibility fallback for databases that have not run the current migration yet.
+    // Compatibility fallback for very old databases.
     res=await sb.rpc('publish_with_subscription',{p_invitation_id:editId});
   }
   if(res.error){
     const msg=String(res.error.message||'');
+    if(/status.*ambiguous|ambiguous.*status/i.test(msg)){
+      throw new Error(getLang()==='ar'?'قاعدة البيانات عندك عليها دالة نشر قديمة فيها تعارض status. شغّل sql/FIX-PUBLISH-FINAL.sql مرة واحدة ثم اضغط نشر الدعوة.':'Your database still has the old ambiguous publish function. Run sql/FIX-PUBLISH-FINAL.sql once, then publish again.');
+    }
     if(/active account subscription|required|subscription/i.test(msg)){
       accountSubscription=null;refreshPublishUI();
-      throw new Error(getLang()==='ar'?'الدفع ممكن يكون متعمد لكن اشتراك الحساب لسه ما اتعملش. شغّل sql/MIGRATE-EXISTING.sql مرة واحدة ثم اضغط تحديث الاشتراك.':'Your payment may be approved but the account membership was not repaired yet. Run sql/MIGRATE-EXISTING.sql once, then refresh membership.');
+      throw new Error(getLang()==='ar'?'الاشتراك ظاهر لكن دالة النشر في قاعدة البيانات محتاجة التحديث. شغّل sql/FIX-PUBLISH-NOW.sql مرة واحدة ثم اضغط نشر الدعوة.':'Your account plan is visible, but the publish function needs the current database hotfix. Run sql/FIX-PUBLISH-NOW.sql once, then publish again.');
     }
     throw res.error;
   }
   state.status='active';state.is_trial=false;saveLocalDraft(serializable());
-  location.href=`share.html?slug=${encodeURIComponent(state.slug)}`;
+  location.href=getPublicInvitationUrl(state.slug);
 }
 
 function generateCopy(){
@@ -389,13 +400,49 @@ async function saveDraft(){
     if(state._galleryFiles?.length){gallery=[];for(const f of state._galleryFiles)gallery.push(await uploadFile('invitation-media',f,`${user.id}/gallery`))}
     if(state._songFile)song=await uploadFile('invitation-media',state._songFile,`${user.id}/music`);
     const requestedSlug=cleanSlug(state.slug);
-    const makePayload=slug=>({user_id:user.id,template_slug:state.template_slug,slug,status:editId?(state.status||'draft'):'draft',language:getLang(),partner1_name:state.partner1_name,partner2_name:state.partner2_name,event_date:state.event_date,venue_name:state.venue_name,city:state.city,map_url:state.map_url||null,message:state.message,hero_image_url:hero||null,gallery_urls:gallery,song_url:song||null,theme_config:{accent:state.accent},features_config:normalizeFeatures(state.features_config)});
-    let res=editId?await sb.from('invitations').update(makePayload(requestedSlug)).eq('id',editId).select('*').single():await sb.from('invitations').insert(makePayload(requestedSlug)).select('*').single();
+    const makePayload=(slug,{forceDraft=false}={})=>({
+      user_id:user.id,template_slug:state.template_slug,slug,
+      status:forceDraft?'draft':(editId?(state.status||'draft'):'draft'),
+      language:getLang(),partner1_name:state.partner1_name,partner2_name:state.partner2_name,
+      event_date:state.event_date,venue_name:state.venue_name,city:state.city,map_url:state.map_url||null,
+      message:state.message,hero_image_url:hero||null,gallery_urls:gallery,song_url:song||null,
+      theme_config:{accent:state.accent},features_config:normalizeFeatures(state.features_config)
+    });
+
+    const writeInvitationDirect=async slug=>{
+      if(editId){
+        const updated=await sb.from('invitations').update(makePayload(slug)).eq('id',editId).eq('user_id',user.id).select('*');
+        if(updated.error)return updated;
+        const row=Array.isArray(updated.data)?updated.data[0]:updated.data;
+        if(row)return {data:row,error:null};
+        editId=null;
+      }
+      const inserted=await sb.from('invitations').insert(makePayload(slug,{forceDraft:true})).select('*');
+      if(inserted.error)return inserted;
+      return {data:Array.isArray(inserted.data)?inserted.data[0]||null:inserted.data||null,error:null};
+    };
+
+    // Preferred V11 path: save through one SECURITY DEFINER RPC. It returns a
+    // normal JSON object and never asks PostgREST to coerce a PATCH result into
+    // a single object, which removes the recurring HTTP 406/PGRST116 failure.
+    let res=await sb.rpc('save_invitation_v11',{
+      p_invitation_id:editId||null,
+      p_payload:makePayload(requestedSlug,{forceDraft:!editId})
+    });
+    if(!res.error){
+      const row=Array.isArray(res.data)?res.data[0]||null:res.data||null;
+      res={data:row,error:null};
+    }else if(/could not find the function|schema cache|save_invitation_v11/i.test(String(res.error.message||''))){
+      // Database has not received the hotfix yet. Keep a non-single direct
+      // fallback so the UI remains usable on older installations.
+      res=await writeInvitationDirect(requestedSlug);
+    }
     if(res.error&&isDuplicateSlugError(res.error)){
       const fallbackSlug=`${requestedSlug}-${Math.random().toString(36).slice(2,6)}`;
-      res=editId?await sb.from('invitations').update(makePayload(fallbackSlug)).eq('id',editId).select('*').single():await sb.from('invitations').insert(makePayload(fallbackSlug)).select('*').single();
+      res=await writeInvitationDirect(fallbackSlug);
     }
     if(res.error)throw res.error;
+    if(!res.data)throw new Error(getLang()==='ar'?'تعذر العثور على الدعوة بعد الحفظ. افتح الدعوة من لوحة التحكم وحاول مرة أخرى.':'The invitation could not be found after saving. Re-open it from the dashboard and try again.');
     editId=res.data.id;Object.assign(state,res.data);state.features_config=normalizeFeatures(state.features_config);
     delete state._heroFile;delete state._galleryFiles;delete state._songFile;
     $('#heroFile').value='';$('#galleryFiles').value='';$('#songFile').value='';
@@ -413,7 +460,7 @@ async function boot(){
   const local=await currentDraft();if(local&&!editId&&!query.get('t')&&!query.get('new'))state=normalizeDraftShape(local,state.template_slug);else state=normalizeDraftShape(state,state.template_slug);
   try{saveLocalDraft(serializable())}catch{}
   try{const dbt=await loadTemplates();if(dbt?.length)templates=activeSorted(mergeBySlug(fallbackTemplates,dbt))}catch{}
-  if(editId){const user=await getBuilderUser();if(!user){location.href='auth.html?next='+encodeURIComponent(location.pathname.split('/').pop()+location.search);return}const sb=await getSupabase();if(sb){const {data,error}=await sb.from('invitations').select('*').eq('id',editId).maybeSingle();if(error)throw error;if(data)state=normalizeDraftShape({...state,...data},data.template_slug||state.template_slug)}else{const demo=getDemoInvitationById(editId);if(demo)state=normalizeDraftShape({...state,...demo},demo.template_slug||state.template_slug)}}
+  if(editId){const user=await getBuilderUser();if(!user){location.href='auth.html?next='+encodeURIComponent(location.pathname.split('/').pop()+location.search);return}const sb=await getSupabase();if(sb){const {data:rows,error}=await sb.from('invitations').select('*').eq('id',editId).eq('user_id',user.id).limit(1);if(error)throw error;const data=Array.isArray(rows)?rows[0]||null:rows||null;if(data)state=normalizeDraftShape({...state,...data},data.template_slug||state.template_slug);else editId=null}else{const demo=getDemoInvitationById(editId);if(demo)state=normalizeDraftShape({...state,...demo},demo.template_slug||state.template_slug)}}
   const qTemplate=query.get('t');if(qTemplate)state.template_slug=qTemplate;
   if(isTemplatePreviewAsset(state.hero_image_url))state.hero_image_url='';
   state.features_config=normalizeFeatures(state.features_config);

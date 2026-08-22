@@ -1,3 +1,8 @@
+# IMPORTANT — current Supabase project
+
+Before testing **Publish invitation**, run `sql/FIX-PUBLISH-NOW.sql` once in Supabase SQL Editor.
+This build already contains the supplied project URL/publishable key in `js/config.js`.
+
 # WEDORA — Start Here
 
 ## عندك Supabase حالي

@@ -47,7 +47,8 @@ export async function getProfile(user=null){
   }
 
   // Compatibility fallback for databases that have not run the current migration yet.
-  const {data,error}=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();
+  const {data:profileRows,error}=await sb.from("profiles").select("*").eq("id",user.id).limit(1);
+  const data=Array.isArray(profileRows)?profileRows[0]||null:profileRows||null;
   if (error) {
     if (String(error.message||"").toLowerCase().includes("permission denied")) {
       throw new Error("Profile access is not configured. Run sql/MIGRATE-EXISTING.sql in Supabase SQL Editor.");
@@ -139,8 +140,9 @@ export async function loadSettings(){
     trial_hours:24
   };
   if (!sb) return fallback;
-  const {data,error}=await sb.from("site_settings").select("*").eq("id",1).maybeSingle();
+  const {data:rows,error}=await sb.from("site_settings").select("*").eq("id",1).limit(1);
   if (error){console.warn(error);return fallback;}
+  const data=Array.isArray(rows)?rows[0]||null:rows||null;
   return {...fallback,...(data||{})};
 }
 
@@ -222,37 +224,40 @@ export async function getActiveSubscription(user=null){
     return active?demo:null;
   }
 
-  // Current authoritative entitlement endpoint. It also repairs accounts that already
-  // have an approved payment but missed the old subscription backfill.
-  try{
-    const rpc=await sb.rpc("get_my_entitlement_v9");
-    if(!rpc.error){
-      const row=Array.isArray(rpc.data)?rpc.data[0]:rpc.data;
-      if(row){
-        return {
-          id:row.subscription_id,
-          user_id:row.user_id,
-          plan_id:row.plan_id,
-          status:row.subscription_status||"active",
-          started_at:row.started_at,
-          current_period_end:row.current_period_end,
-          is_lifetime:!!row.is_lifetime,
-          plan_slug:row.plan_slug,
-          plan_name_ar:row.plan_name_ar,
-          plan_name_en:row.plan_name_en,
-          plan_features:row.plan_features||[],
-          plan:{
-            id:row.plan_id,
-            slug:row.plan_slug,
-            name_ar:row.plan_name_ar,
-            name_en:row.plan_name_en,
-            features:row.plan_features||[],
-            is_lifetime:!!row.is_lifetime
-          }
-        };
+  // Current entitlement endpoint. V10 deliberately avoids the old repair path
+  // so an already-active account can publish even when a legacy subscriptions
+  // table was created without the newer UNIQUE(user_id) constraint.
+  for(const rpcName of ["get_my_entitlement_v11","get_my_entitlement_v10","get_my_entitlement_v9"]){
+    try{
+      const rpc=await sb.rpc(rpcName);
+      if(!rpc.error){
+        const row=Array.isArray(rpc.data)?rpc.data[0]:rpc.data;
+        if(row){
+          return {
+            id:row.subscription_id,
+            user_id:row.user_id,
+            plan_id:row.plan_id,
+            status:row.subscription_status||"active",
+            started_at:row.started_at,
+            current_period_end:row.current_period_end,
+            is_lifetime:!!row.is_lifetime,
+            plan_slug:row.plan_slug,
+            plan_name_ar:row.plan_name_ar,
+            plan_name_en:row.plan_name_en,
+            plan_features:row.plan_features||[],
+            plan:{
+              id:row.plan_id,
+              slug:row.plan_slug,
+              name_ar:row.plan_name_ar,
+              name_en:row.plan_name_en,
+              features:row.plan_features||[],
+              is_lifetime:!!row.is_lifetime
+            }
+          };
+        }
       }
-    }
-  }catch{}
+    }catch{}
+  }
 
   // Legacy endpoint fallback for older databases.
   try{
@@ -264,10 +269,13 @@ export async function getActiveSubscription(user=null){
   }catch{}
 
   try{
-    const {data,error}=await sb.from("subscriptions").select("*,plan:plans(id,slug,name_ar,name_en,duration_months,is_lifetime,features)").eq("user_id",user.id).eq("status","active").maybeSingle();
-    if(!error&&data){
-      const active=data.is_lifetime||(data.current_period_end&&new Date(data.current_period_end)>new Date());
-      if(active)return data;
+    const {data:rows,error}=await sb.from("subscriptions")
+      .select("*,plan:plans(id,slug,name_ar,name_en,duration_months,is_lifetime,features)")
+      .eq("user_id",user.id).eq("status","active")
+      .order("is_lifetime",{ascending:false}).order("updated_at",{ascending:false}).limit(5);
+    if(!error){
+      const data=(Array.isArray(rows)?rows:rows?[rows]:[]).find(row=>row?.is_lifetime||(row?.current_period_end&&new Date(row.current_period_end)>new Date()));
+      if(data)return data;
     }
   }catch{}
 
@@ -299,9 +307,9 @@ export async function getInvitationBySlug(slug,{allowOwner=false}={}){
   if(!sb)return getDemoInvitationBySlug(slug,{activeOnly:!allowOwner});
   let q=sb.from("invitations").select("*").eq("slug",slug);
   if(!allowOwner)q=q.eq("status","active");
-  const {data,error}=await q.maybeSingle();
+  const {data:rows,error}=await q.order("updated_at",{ascending:false}).limit(1);
   if(error)throw error;
-  return data;
+  return Array.isArray(rows)?rows[0]||null:rows||null;
 }
 
 export async function currentDraft(){

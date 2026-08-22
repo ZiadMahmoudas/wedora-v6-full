@@ -11,8 +11,8 @@ async function boot(){
   const sb=await getSupabase();
   if(!sb){invite=getDemoInvitationBySlug(slug)||{id:'demo',slug,status:'active',partner1_name:'Ahmed',partner2_name:'Salma'};}
   else{
-    const {data,error}=await sb.from('invitations').select('id,user_id,slug,status,partner1_name,partner2_name').eq('slug',slug).eq('user_id',user.id).maybeSingle();
-    if(error)throw error;if(!data){location.href='dashboard.html';return}invite=data;
+    const {data:rows,error}=await sb.from('invitations').select('id,user_id,slug,status,partner1_name,partner2_name').eq('slug',slug).eq('user_id',user.id).order('updated_at',{ascending:false}).limit(1);
+    if(error)throw error;const data=Array.isArray(rows)?rows[0]||null:rows||null;if(!data){location.href='dashboard.html';return}invite=data;
   }
   if(invite.status!=='active'){location.href=`builder.html?id=${encodeURIComponent(invite.id)}`;return}
   url=getPublicInvitationUrl(invite.slug);
